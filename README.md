@@ -1,109 +1,61 @@
-# clarity-engine
-context-engineering service
-
 # Clarity Engine
 
-**Clarity Engine** is a lightweight context-engineering service for producing clear, testable, and repeatable intent packets for human–AI and agentic workflows.
+Clarity Engine is intent and context infrastructure: it standardizes how we generate clear, testable Context Packets for human–AI and agentic workflows so work stays aligned and auditable.
 
-It generates structured **Context Packets** that define:
-- mission,
-- current reality (facts only),
-- constraints,
-- acceptance criteria,
-- required artifacts,
-- and failure modes  
-so coding agents (Claude, Codex, etc.) can plan and execute with minimal ambiguity.
+## Project Identity (Stage 0)
+- **Mission:** Provide repeatable Context Packets that remove ambiguity for coding agents while preserving the broader intent/context infrastructure vision.
+- **Current Stage:** Stage 0 — repository initialization, contracts, and directory skeleton; the core artifact is the Context Packet produced from the shared template and schema.
+- **Out of Scope (now):** No runtime services, no MCP server, no FastAPI endpoints, no UI implementation, and no network- or secret-dependent behaviors.
+- **Future stack (not implemented):** FastAPI + MCP backend, packet registry, and a small Next.js-style UI are planned but explicitly dormant in this stage.
 
-This project is designed as **intent infrastructure**: simple tools first, orchestration later.
+## Authoritative Artifacts
+These files define how the project operates and must stay in sync.
+- `AGENTS.md`: Operating guide and constraints for agents contributing to the repo.
+- `CONTEXT_PACKET_TEMPLATE.md`: Paste-ready Context Packet template aligned with the schema.
+- `pcp_lite.schema.json`: Machine-readable contract for packet manifests.
+- `.github/workflows/ci.yml`: Baseline CI placeholder for Stage 0.
 
----
-
-## Core Workflow
-
-1. **Compose** a structured context manifest (JSON or form input)
-2. **Lint** the manifest for completeness and ambiguity
-3. **Emit**:
-   - a paste-ready Markdown Context Packet
-   - a machine-readable manifest
-   - a `context_sha` digest for traceability
-4. **Paste** into Claude / Codex for execution
-
-Later stages will allow these packets to be stamped into execution traces.
-
----
-
-## Stage 0 Scope (Current)
-
-Stage 0 is focused on **project bootstrapping and contracts**, not full orchestration.
-
-Included:
-- Repo structure + documentation
-- Agent operating rules (`AGENTS.md`)
-- Context packet template
-- PCP-lite schema for manifests
-- Deterministic CLI tools for:
-  - packet composition
-  - packet linting
-
-Explicitly NOT included yet:
-- Authentication
-- Multi-user persistence
-- Network or secret-using tools
-- Sandbox execution
-- JCT or runtime orchestration
-
----
-
-## Tech Stack (Initial)
-
-**Backend**
-- Python 3.12
-- FastAPI
-- MCP Server (Python SDK)
-- Pydantic
-
-**Frontend (Optional in Stage 0)**
-- Vite
-- React
-- TypeScript
-- Tailwind + Radix
-- Zod
-
-All semantics live in the backend. The UI is a thin client.
-
----
-
-## Repo Map (Planned)
+## Repository Structure
+```
 clarity-engine/
-├── AGENTS.md                      # Rules for code agents
-├── CONTEXT_PACKET_TEMPLATE.md    # Paste-ready prompt skeleton
-├── pcp_lite.schema.json          # Machine contract for context manifests
-├── tools/
-│   ├── compose_packet.py         # Deterministic packet compiler
-│   └── lint_packet.py            # Packet validator
-├── packets/                      # Generated packet artifacts
-├── app/                          # FastAPI + MCP server
-├── ui/                           # Optional Vite/React frontend
-└── .github/workflows/ci.yml      # CI baseline
+├── AGENTS.md                       # Rules for code agents
+├── CONTEXT_PACKET_TEMPLATE.md      # Paste-ready prompt skeleton
+├── pcp_lite.schema.json            # PCP-lite manifest contract
+├── README.md                       # Project overview and Stage 0 scope
+├── tools/                          # Reserved: packet compose/lint tools
+├── packets/                        # Reserved: generated packet artifacts
+├── app/                            # Reserved: future backend runtime (no services in Stage 0)
+├── ui/                             # Reserved: future UI (no implementation in Stage 0)
+└── .github/workflows/ci.yml        # CI placeholder aligned to Stage 0
+```
 
----
+Stage 0 keeps these directories present but intentionally minimal; do not add runtime code yet.
 
-## Design Principles
+## How to Work With Context Packets (Stage 0)
+1. Start from `CONTEXT_PACKET_TEMPLATE.md` when drafting packets for tasks.
+2. Use `pcp_lite.schema.json` as the contract for any machine-readable manifests.
+3. Keep template, schema, and any packet artifacts consistent; schema changes require template updates (and vice versa).
 
-- **Artifacts over vibes** — every action leaves a durable record.
-- **Testable progress** — each stage produces verifiable outputs.
-- **Simple tools first** — orchestration is layered later.
-- **Stateless agents, stateful systems** — agents reset, packets persist.
-- **Constraints before cleverness** — guardrails define the search space.
+CLI tools for composition and linting will live under `tools/` in later stages; no runtime tools are shipped yet.
 
----
+## Further context (not required for Stage 0)
+Deeper mission, architecture, and planned runtime surfaces are captured in `docs/vision/`:
+- `docs/vision/mission.md`
+- `docs/vision/architecture.md`
+
+## Stage 0 Non-Goals
+- No authentication or multi-user persistence.
+- No orchestration, sandbox execution, MCP endpoints, or FastAPI services.
+- No UI runtime or build pipeline.
+
+## Planned Technical Posture (for later stages)
+- **Backend (future):** Python 3.12, FastAPI, MCP Server SDK, Pydantic.
+- **Frontend (future):** Vite, React, TypeScript, Tailwind, Radix, Zod.
+
+These stacks are not enabled in Stage 0; they are listed to anchor expectations for future development.
 
 ## License
+Apache License 2.0 (see `LICENSE`).
 
-TBD (MIT or Apache-2.0 recommended for tooling reuse)
-
----
-
-## Author
-
-GitHub: **@treksavvy**
+## Contact
+Maintained by **@treksavvy**; contributions should respect Stage 0 boundaries.

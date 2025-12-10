@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PCP-lite Context Packet Manifest",
+  "description": "Schema for machine-readable Context Packets used by Clarity Engine (Stage 0).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "stage",
+    "mission",
+    "facts",
+    "constraints",
+    "acceptance",
+    "required_artifacts",
+    "failure_modes",
+    "sources_of_truth",
+    "version"
+  ],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Name of the project that the packet belongs to."
+    },
+    "stage": {
+      "type": "string",
+      "description": "Lifecycle stage (e.g., 'Stage 0', 'Stage 1')."
+    },
+    "substage": {
+      "type": "string",
+      "description": "Optional substage identifier within the lifecycle stage.",
+      "default": ""
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the PCP-lite schema/template used to craft the packet."
+    },
+    "mission": {
+      "type": "string",
+      "description": "Succinct mission statement for the packet."
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Bullet list of current, factual statements."
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Boundary conditions that must hold true."
+    },
+    "acceptance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Testable definition of done bullets."
+    },
+    "required_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Outputs that must be produced for the packet to be complete."
+    },
+    "sources_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Links or references that anchor facts and constraints."
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Known risks, anti-goals, or explicit non-scope items."
+    },
+    "context_sha": {
+      "type": "string",
+      "description": "Optional deterministic content hash for the packet contents."
+    }
+  }
+}
