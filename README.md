@@ -38,7 +38,7 @@ Stage 0 keeps these directories present but intentionally minimal; do not add ru
 2. Use `pcp_lite.schema.json` as the contract for any machine-readable manifests.
 3. Keep template, schema, and any packet artifacts consistent; schema changes require template updates (and vice versa).
 
-CLI tools for composition and linting live under `tools/`. Use `python tools/compose_packet.py <manifest.json>` to emit a packet markdown, normalized manifest, and context hash.
+CLI tools for composition and linting live under `tools/`. Use `python tools/compose_packet.py <manifest.json>` to emit a packet markdown, normalized manifest, and context hash. Run `python tools/lint_packet.py <manifest.json>` to validate manifests against the PCP-lite schema and required content sections before composing.
 
 ## Further context (not required for Stage 0)
 Deeper mission, architecture, and planned runtime surfaces are captured in `docs/vision/`:
