@@ -40,6 +40,10 @@ Stage 0 keeps these directories present but intentionally minimal; do not add ru
 
 CLI tools for composition and linting live under `tools/`. Use `python tools/compose_packet.py <manifest.json>` to emit a packet markdown, normalized manifest, and context hash. Run `python tools/lint_packet.py <manifest.json>` to validate manifests against the PCP-lite schema and required content sections before composing.
 
+## Continuous Integration
+- CI runs on every push and pull request via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+- Checks ensure Python 3.12 setup, run the unit test suite, lint the example manifest at `packets/examples/context_packet_example.json`, and compose a packet from the same manifest.
+
 ## Further context (not required for Stage 0)
 Deeper mission, architecture, and planned runtime surfaces are captured in `docs/vision/`:
 - `docs/vision/mission.md`
