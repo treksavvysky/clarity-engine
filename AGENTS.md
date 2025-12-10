@@ -14,6 +14,8 @@ Codex’s mission in this repo:
 
 > Implement and maintain small, incremental changes that improve the ability to generate clear, consistent, and testable Context Packets—without breaking existing behavior or contracts.
 
+see docs/vision/mission.md for extended an extended mission statement
+see docs/vision/architecture.md for Architecture (Planned)
 ---
 
 ## 2. Scope and Boundaries (Stage 0)
