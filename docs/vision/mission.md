@@ -10,3 +10,9 @@ Clarity Engine exists to make intent and context portable across humans and agen
 
 ## Stage 0 Note
 Only documentation and scaffolding exist today. Tooling, services, and UI described here are vision placeholders and are **not implemented** in Stage 0.
+
+### Clarity Engine is not a workflow runner.
+It does not execute tasks or orchestrate agents; it produces the contracts that other systems use. Its purpose is to externalize intent, not to interpret or act on that intent.
+
+### Context Packets are the atomic unit of alignment.
+Everything Clarity Engine emits is designed to be portable, reviewable, and archivable—so that humans and agents can resume work from the packet alone, without needing operational memory or historical context.
