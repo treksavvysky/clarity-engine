@@ -13,6 +13,7 @@ These files define how the project operates and must stay in sync.
 - `AGENTS.md`: Operating guide and constraints for agents contributing to the repo.
 - `CONTEXT_PACKET_TEMPLATE.md`: Paste-ready Context Packet template aligned with the schema.
 - `pcp_lite.schema.json`: Machine-readable contract for packet manifests.
+- `packets/examples/context_packet_example.json`: Minimal manifest example that conforms to the PCP-lite schema.
 - `.github/workflows/ci.yml`: Baseline CI placeholder for Stage 0.
 
 ## Repository Structure

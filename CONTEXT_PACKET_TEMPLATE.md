@@ -1,9 +1,9 @@
 # Context Packet Template (PCP-lite)
 
-- **Project:** <project name>
-- **Stage:** <stage number or label>
-- **Substage:** <substage identifier>
-- **Version:** <schema/template version>
+- **Project:** <project name, optional>
+- **Stage:** <stage number or label, optional>
+- **Substage:** <substage identifier, optional>
+- **Version:** <schema/template version, optional>
 
 ## Mission
 - <succinct mission statement>
@@ -28,20 +28,29 @@
 - <artifact 2>
 - ...
 
-## Sources of Truth
-- <link or reference 1>
-- <link or reference 2>
+## Failure Modes
+- <known risk, anti-goal, or non-goal 1>
+- <known risk, anti-goal, or non-goal 2>
 - ...
 
-## Failure Modes / Guardrails
-- <known risk or anti-goal 1>
-- <known risk or anti-goal 2>
+## Substage Gate / Work Envelope
+- <what is allowed or in-scope for this substage>
+- <what is explicitly out-of-scope>
+
+## Notes or Scope Warnings (Optional)
+- <note 1>
+- <note 2>
+
+## Sources of Truth (Optional)
+- <link or reference 1>
+- <link or reference 2>
 - ...
 
 ---
 
 **Usage Notes**
 - Keep each bullet factual, testable, and concise.
+- Maintain section order; do not omit required sections even if a list is brief.
 - Align field names and content with `pcp_lite.schema.json`.
 - Update `Version` when the schema or template meaning changes.
 - If a field is intentionally empty, state why rather than omitting it.
