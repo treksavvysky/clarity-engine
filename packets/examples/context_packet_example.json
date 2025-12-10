@@ -1,0 +1,38 @@
+{
+  "project": "Clarity Engine",
+  "stage": "Stage 0",
+  "substage": "Stage 0.2",
+  "version": "0.2.0",
+  "mission": "Define the authoritative contract for Context Packets.",
+  "current_reality": [
+    "Stage 0 focuses on establishing contracts and artifacts, not tools.",
+    "Context Packet sections must be consistent between human- and machine-readable forms."
+  ],
+  "constraints": [
+    "Do not implement runtime tools or services in this substage.",
+    "Keep the schema and template synchronized."
+  ],
+  "acceptance": [
+    "Template and schema share field names and section order.",
+    "A valid manifest example is committed alongside the contract artifacts."
+  ],
+  "required_artifacts": [
+    "Updated CONTEXT_PACKET_TEMPLATE.md aligned to PCP-lite.",
+    "Updated pcp_lite.schema.json reflecting required fields.",
+    "Example manifest demonstrating the contract."
+  ],
+  "failure_modes": [
+    "Schema or template drift causing ambiguous packets.",
+    "Including execution logic or tools during Stage 0.2."
+  ],
+  "substage_gate": [
+    "In-scope: defining static contract artifacts for Context Packets.",
+    "Out-of-scope: composing packets automatically or running linters."
+  ],
+  "notes": [
+    "Optional fields like project, stage, substage, version, and sources_of_truth may be omitted when not applicable."
+  ],
+  "sources_of_truth": [
+    "docs/vision/mission.md"
+  ]
+}

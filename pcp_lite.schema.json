@@ -5,40 +5,36 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "project",
-    "stage",
     "mission",
-    "facts",
+    "current_reality",
     "constraints",
     "acceptance",
     "required_artifacts",
     "failure_modes",
-    "sources_of_truth",
-    "version"
+    "substage_gate"
   ],
   "properties": {
     "project": {
       "type": "string",
-      "description": "Name of the project that the packet belongs to."
+      "description": "Optional project name the packet belongs to."
     },
     "stage": {
       "type": "string",
-      "description": "Lifecycle stage (e.g., 'Stage 0', 'Stage 1')."
+      "description": "Optional lifecycle stage label (e.g., 'Stage 0')."
     },
     "substage": {
       "type": "string",
-      "description": "Optional substage identifier within the lifecycle stage.",
-      "default": ""
+      "description": "Optional substage identifier within the lifecycle stage."
     },
     "version": {
       "type": "string",
-      "description": "Version of the PCP-lite schema/template used to craft the packet."
+      "description": "Optional version of the PCP-lite schema/template used to craft the packet."
     },
     "mission": {
       "type": "string",
       "description": "Succinct mission statement for the packet."
     },
-    "facts": {
+    "current_reality": {
       "type": "array",
       "items": {
         "type": "string"
@@ -70,14 +66,6 @@
       "minItems": 1,
       "description": "Outputs that must be produced for the packet to be complete."
     },
-    "sources_of_truth": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 1,
-      "description": "Links or references that anchor facts and constraints."
-    },
     "failure_modes": {
       "type": "array",
       "items": {
@@ -86,9 +74,29 @@
       "minItems": 1,
       "description": "Known risks, anti-goals, or explicit non-scope items."
     },
-    "context_sha": {
-      "type": "string",
-      "description": "Optional deterministic content hash for the packet contents."
+    "substage_gate": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Boundaries describing what is in or out of scope for the substage."
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Optional clarifications, warnings, or caveats."
+    },
+    "sources_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Optional links or references that anchor facts and constraints."
     }
   }
 }
