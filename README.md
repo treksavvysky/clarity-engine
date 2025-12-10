@@ -23,7 +23,8 @@ clarity-engine/
 ├── CONTEXT_PACKET_TEMPLATE.md      # Paste-ready prompt skeleton
 ├── pcp_lite.schema.json            # PCP-lite manifest contract
 ├── README.md                       # Project overview and Stage 0 scope
-├── tools/                          # Reserved: packet compose/lint tools
+├── tools/                          # Packet compose/lint tools
+│   └── compose_packet.py           # Deterministically emits packet.md, manifest.json, and context_sha
 ├── packets/                        # Reserved: generated packet artifacts
 ├── app/                            # Reserved: future backend runtime (no services in Stage 0)
 ├── ui/                             # Reserved: future UI (no implementation in Stage 0)
@@ -37,7 +38,7 @@ Stage 0 keeps these directories present but intentionally minimal; do not add ru
 2. Use `pcp_lite.schema.json` as the contract for any machine-readable manifests.
 3. Keep template, schema, and any packet artifacts consistent; schema changes require template updates (and vice versa).
 
-CLI tools for composition and linting will live under `tools/` in later stages; no runtime tools are shipped yet.
+CLI tools for composition and linting live under `tools/`. Use `python tools/compose_packet.py <manifest.json>` to emit a packet markdown, normalized manifest, and context hash.
 
 ## Further context (not required for Stage 0)
 Deeper mission, architecture, and planned runtime surfaces are captured in `docs/vision/`:
