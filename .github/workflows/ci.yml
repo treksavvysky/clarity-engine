@@ -1,0 +1,21 @@
+name: CI (Stage 0)
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  stage-0-contract-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate repository scaffolding
+        run: |
+          echo "Stage 0 CI placeholder: no runtime checks yet"
+          test -f AGENTS.md
+          test -f README.md
+          test -f CONTEXT_PACKET_TEMPLATE.md
+          test -f pcp_lite.schema.json

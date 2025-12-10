@@ -32,7 +32,12 @@ Codex must **not**:
 - Add network-dependent features
 - Introduce secret-handling or auth flows
 - Implement runtime orchestration or sandbox execution
+- Ship MCP servers, FastAPI endpoints, UI builds, or persistence layers
 - Change the public mission of the project without an explicit instruction
+
+Reserved directories for future runtime work:
+- `app/` — backend runtime; keep empty or with documentation only
+- `ui/` — frontend; keep empty or with documentation only
 
 ---
 
@@ -68,6 +73,7 @@ Codex is responsible for **creating and keeping the following artifacts up to da
      - Acceptance (Definition of Done)
      - Required artifacts
      - Failure modes
+     - Sources of truth
    - Keep aligned with the actual structure used by the tools and schema.
 
 ---
@@ -195,7 +201,5 @@ Codex should **not**:
 - Implement MCP or FastAPI endpoints unless explicitly requested.
 - Implement UI features or frontend code unless explicitly requested.
 - Integrate with external systems (JCT, sandboxes, etc.) at this stage.
-
----
 
 By following this guide, Codex helps keep **clarity-engine** simple, reliable, and ready for later stages—where orchestration and integration will build on these core artifacts.
