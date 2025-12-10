@@ -1,29 +1,35 @@
-name: CI (Stage 0)
+name: CI
 
 on:
   push:
-    branches: ["**"]
   pull_request:
-    branches: ["**"]
 
 jobs:
-  stage-0-contract-check:
+  contract-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate repository scaffolding
-        run: |
-          echo "Stage 0 CI placeholder: no runtime checks yet"
-          test -f AGENTS.md
-          test -f README.md
-          test -f CONTEXT_PACKET_TEMPLATE.md
-          test -f pcp_lite.schema.json
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+
+      - name: Install dependencies (if present)
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found; skipping dependency installation."
+          fi
+
       - name: Run unit tests
         run: python -m unittest discover -s tests -p 'test_*.py'
-      - name: Lint example manifest
+
+      - name: Lint example context packet manifest
         run: python tools/lint_packet.py packets/examples/context_packet_example.json
+
+      - name: Compose packet from example manifest
+        run: python tools/compose_packet.py packets/examples/context_packet_example.json
