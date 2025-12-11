@@ -1,13 +1,15 @@
-"""FastAPI application for Clarity Engine Stage-01.2."""
+"""FastAPI application for Clarity Engine Stage-01.3."""
 
 import json
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException
 
-from tools import compose_packet
+from tools import compose_packet, lint_packet
 
 app = FastAPI(title="Clarity Engine", version="0.1.0", docs_url=None, redoc_url=None)
+
+LINT_SCHEMA = lint_packet.load_schema()
 
 
 @app.get("/healthz")
@@ -38,3 +40,11 @@ def compose_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
         "manifest": json.loads(normalized_manifest),
         "context_sha": context_sha,
     }
+
+
+@app.post("/packets/lint")
+def lint_packet_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    """Lint a Context Packet manifest using the Stage-0 linter logic."""
+
+    issues = lint_packet.lint_manifest(manifest, LINT_SCHEMA)
+    return {"ok": not issues, "issues": issues}
