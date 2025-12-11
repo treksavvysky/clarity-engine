@@ -1,8 +1,10 @@
-# App Directory (Stage-01.1)
+# App Directory (Stage-01.3)
 
-The backend runtime now hosts a minimal FastAPI application that exposes a
-single health endpoint. This establishes the HTTP boundary without changing
-any Stage-0 contract artifacts.
+The backend runtime hosts a FastAPI application that exposes deterministic
+transport adapters over the Stage-0 packet tools:
+- `GET /healthz`
+- `POST /packets/compose`
+- `POST /packets/lint`
 
 ## Run locally
 1. Install dependencies from the repository root:

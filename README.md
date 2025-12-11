@@ -2,10 +2,10 @@
 
 Clarity Engine is intent and context infrastructure: it standardizes how we generate clear, testable Context Packets for human–AI and agentic workflows so work stays aligned and auditable.
 
-## Project Identity (Stage-01.2)
+## Project Identity (Stage-01.3)
 - **Mission:** Provide repeatable Context Packets that remove ambiguity for coding agents while preserving the broader intent/context infrastructure vision.
-- **Current Stage:** Stage-01.2 — Stage 0 artifacts remain frozen, and the FastAPI boundary now exposes `/healthz` plus `/packets/compose`, which reuses the Stage-0 compose logic to return `packet_md`, normalized `manifest`, and `context_sha`.
-- **Out of Scope (now):** No additional HTTP endpoints beyond `/healthz` and `/packets/compose`, authentication, persistence, orchestration, UI implementation, or network-dependent behaviors.
+- **Current Stage:** Stage-01.3 — Stage 0 artifacts remain frozen, and the FastAPI boundary exposes `/healthz`, `/packets/compose`, and `/packets/lint`, reusing Stage-0 logic for composition and linting with deterministic responses.
+- **Out of Scope (now):** No additional HTTP endpoints beyond `/healthz`, `/packets/compose`, and `/packets/lint`, authentication, persistence, orchestration, UI implementation, or network-dependent behaviors.
 - **Active stack:** Python 3.12 + FastAPI (+ Uvicorn for local serving) alongside the Stage-0 packet tools.
 
 ## Authoritative Artifacts
@@ -28,12 +28,12 @@ clarity-engine/
 ├── tools/                          # Packet compose/lint tools (Stage-0 contract)
 │   └── compose_packet.py           # Deterministically emits packet.md, manifest.json, and context_sha
 ├── packets/                        # Reserved: generated packet artifacts and examples
-├── app/                            # FastAPI entrypoint with /healthz and /packets/compose
+├── app/                            # FastAPI entrypoint with /healthz, /packets/compose, and /packets/lint
 ├── ui/                             # Reserved: future UI (no implementation yet)
 └── .github/workflows/ci.yml        # CI pipeline for packet tools and runtime import checks
 ```
 
-Stage-0 contract files (`CONTEXT_PACKET_TEMPLATE.md`, `pcp_lite.schema.json`, `tools/compose_packet.py`, `tools/lint_packet.py`) remain unchanged and authoritative during Stage-01.2.
+Stage-0 contract files (`CONTEXT_PACKET_TEMPLATE.md`, `pcp_lite.schema.json`, `tools/compose_packet.py`, `tools/lint_packet.py`) remain unchanged and authoritative during Stage-01.3.
 
 ## How to Run the FastAPI App
 1. Install dependencies from the repository root:
@@ -58,6 +58,14 @@ Stage-0 contract files (`CONTEXT_PACKET_TEMPLATE.md`, `pcp_lite.schema.json`, `t
    ```
    The response includes `packet_md` (markdown), `manifest` (normalized JSON), and `context_sha` (hash), matching the Stage-0 CLI outputs for the same manifest.
 
+5. Lint a Context Packet manifest over HTTP using the Stage-0 linter semantics:
+   ```bash
+   curl -s -X POST http://127.0.0.1:8000/packets/lint \
+     -H "Content-Type: application/json" \
+     -d @packets/examples/context_packet_example.json
+   ```
+   The response includes `ok` (boolean) and `issues` (list of lint findings), mirroring the Stage-0 lint behavior.
+
 ## How to Work With Context Packets (Stage 0 artifacts)
 1. Start from `CONTEXT_PACKET_TEMPLATE.md` when drafting packets for tasks.
 2. Use `pcp_lite.schema.json` as the contract for any machine-readable manifests.
@@ -79,7 +87,7 @@ Deeper mission, architecture, and planned runtime surfaces are captured in `docs
 
 ## Current Constraints
 - No authentication or multi-user persistence.
-- No orchestration, sandbox execution, additional MCP endpoints, or network-dependent behaviors beyond the health and compose endpoints.
+- No orchestration, sandbox execution, additional MCP endpoints, or network-dependent behaviors beyond the health, compose, and lint endpoints.
 - UI runtime remains dormant.
 
 ## Planned Technical Posture (for later stages)
@@ -92,4 +100,4 @@ These stacks beyond the health check are not yet enabled; they anchor expectatio
 Apache License 2.0 (see `LICENSE`).
 
 ## Contact
-Maintained by **@treksavvy**; contributions should respect Stage-01.2 boundaries.
+Maintained by **@treksavvy**; contributions should respect Stage-01.3 boundaries.
