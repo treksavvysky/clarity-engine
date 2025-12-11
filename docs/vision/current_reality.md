@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-01.1
+# Current Reality (Facts Only) — Stage-01.2
 
 ## Repository / Contract Baseline
 - Stage 0 artifacts and CLI tools remain unchanged and authoritative:
