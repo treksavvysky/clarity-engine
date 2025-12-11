@@ -43,6 +43,8 @@ see docs/vision/architecture.md for Architecture (Planned)
 
 Codex is responsible for **creating and keeping the following artifacts up to date** as the project evolves.
 
+Always consult `docs/vision/current_reality.md` for the current facts about the project stage and runtime; update that file whenever tasks move the system forward.
+
 ### 3.1 Documentation & Contracts
 
 1. `README.md`
