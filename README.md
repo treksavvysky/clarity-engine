@@ -4,13 +4,13 @@ Clarity Engine is intent and context infrastructure: it standardizes how we gene
 
 ## Project Identity (Stage 0)
 - **Mission:** Provide repeatable Context Packets that remove ambiguity for coding agents while preserving the broader intent/context infrastructure vision.
-- **Current Stage:** Stage 0 — repository initialization, contracts, and directory skeleton; the core artifact is the Context Packet produced from the shared template and schema.
+- **Current Stage:** Stage 0 (frozen) — repository initialization, contracts, and directory skeleton; the core artifact is the Context Packet produced from the shared template and schema.
 - **Out of Scope (now):** No runtime services, no MCP server, no FastAPI endpoints, no UI implementation, and no network- or secret-dependent behaviors.
 - **Future stack (not implemented):** FastAPI + MCP backend, packet registry, and a small Next.js-style UI are planned but explicitly dormant in this stage.
 
 ## Authoritative Artifacts
 These files define how the project operates and must stay in sync.
-- `AGENTS.md`: Operating guide and constraints for agents contributing to the repo.
+- `AGENTS.md`: Operating guide and constraints for agents contributing to the repo (includes Stage-01 reference instructions).
 - `CONTEXT_PACKET_TEMPLATE.md`: Paste-ready Context Packet template aligned with the schema.
 - `pcp_lite.schema.json`: Machine-readable contract for packet manifests.
 - `packets/examples/context_packet_example.json`: Minimal manifest example that conforms to the PCP-lite schema.
@@ -22,16 +22,17 @@ clarity-engine/
 ├── AGENTS.md                       # Rules for code agents
 ├── CONTEXT_PACKET_TEMPLATE.md      # Paste-ready prompt skeleton
 ├── pcp_lite.schema.json            # PCP-lite manifest contract
-├── README.md                       # Project overview and Stage 0 scope
+├── README.md                       # Project overview and Stage 0 scope (frozen)
+├── docs/                           # Documentation set, including vision and stage summaries
 ├── tools/                          # Packet compose/lint tools
 │   └── compose_packet.py           # Deterministically emits packet.md, manifest.json, and context_sha
-├── packets/                        # Reserved: generated packet artifacts
+├── packets/                        # Reserved: generated packet artifacts and examples
 ├── app/                            # Reserved: future backend runtime (no services in Stage 0)
 ├── ui/                             # Reserved: future UI (no implementation in Stage 0)
 └── .github/workflows/ci.yml        # CI placeholder aligned to Stage 0
 ```
 
-Stage 0 keeps these directories present but intentionally minimal; do not add runtime code yet.
+Stage 0 keeps these directories present but intentionally minimal; do not add runtime code yet. See `docs/vision/STAGE-01-SUMMARY.md` before starting any Stage-01 substage work.
 
 ## How to Work With Context Packets (Stage 0)
 1. Start from `CONTEXT_PACKET_TEMPLATE.md` when drafting packets for tasks.
@@ -48,6 +49,8 @@ CLI tools for composition and linting live under `tools/`. Use `python tools/com
 Deeper mission, architecture, and planned runtime surfaces are captured in `docs/vision/`:
 - `docs/vision/mission.md`
 - `docs/vision/architecture.md`
+- `docs/vision/STAGE-01-MISSION.md`
+- `docs/vision/STAGE-01-SUMMARY.md`
 
 ## Stage 0 Non-Goals
 - No authentication or multi-user persistence.

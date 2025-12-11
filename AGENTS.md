@@ -166,6 +166,13 @@ When Codex makes changes:
        - Tools (compose/lint)
        - README and/or AGENTS if behavior or expectations change.
 
+## Stage-01 Reference (while Stage 0 is frozen)
+
+- `docs/vision/STAGE-01-SUMMARY.md` — checkpoint summary for the transition from Stage 0 to Stage-01.
+- `docs/vision/STAGE-01-MISSION.md` — gates, constraints, and substages for Stage-01.
+
+When working on Stage-01 or any Stage-01 substages, reference both files above to align on constraints and acceptance before making changes.
+
 4. **Respect constraints**
    - No new dependencies without clear purpose.
    - No network or secrets in Stage 0.
