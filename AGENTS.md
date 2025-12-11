@@ -18,7 +18,7 @@ see docs/vision/mission.md for extended an extended mission statement
 see docs/vision/architecture.md for Architecture (Planned)
 ---
 
-## 2. Scope and Boundaries (Stage 0 → Stage-01.1)
+## 2. Scope and Boundaries (Stage 0 → Stage-01.2)
 
 ### What stays frozen
 - Stage-0 artifacts remain authoritative and must not change unless explicitly requested:
@@ -27,14 +27,17 @@ see docs/vision/architecture.md for Architecture (Planned)
   - `tools/compose_packet.py`
   - `tools/lint_packet.py`
 
-### Stage-01.1 allowances
-- Additive runtime work is now permitted under `app/` to host a minimal FastAPI boundary.
-- The only shipped endpoint is `/healthz`, returning `{ "status": "ok" }`; no auth, persistence, or outbound calls are allowed.
+### Stage-01.2 allowances
+- Additive runtime work is permitted under `app/` to host a minimal FastAPI boundary.
+- Shipped endpoints:
+  - `/healthz` returning `{ "status": "ok" }`.
+  - `/packets/compose` reusing the Stage-0 compose logic and returning deterministic `packet_md`, normalized `manifest`, and `context_sha` with no behavior changes to the CLI tools.
 - Dependencies for the runtime belong in `requirements.txt` (keep the list minimal and purpose-driven).
 - CI may include import/health checks for the FastAPI app but must remain deterministic and network-free.
+- The runtime must stay stateless: no authentication, persistence, outbound calls, or UI components.
 
 ### Still out of scope
-- MCP servers, additional HTTP endpoints beyond `/healthz`, UI builds, orchestration, or secret handling.
+- MCP servers, additional HTTP endpoints beyond `/healthz` and `/packets/compose`, UI builds, orchestration, or secret handling.
 - Network-dependent behavior and persistence layers remain prohibited.
 
 ---
@@ -173,8 +176,8 @@ When Codex makes changes:
 When working on Stage-01 or any Stage-01 substages, reference both files above to align on constraints and acceptance before making changes.
 
 4. **Respect constraints**
-   - No new dependencies without clear purpose (FastAPI + Uvicorn are approved for Stage-01.1).
-   - No network or secrets in Stage 0 or Stage-01.1.
+   - No new dependencies without clear purpose (FastAPI + Uvicorn are approved for Stage-01.x runtime work).
+   - No network or secrets in Stage 0 or Stage-01.
    - Do not remove existing working functionality without replacement.
 
 ---
