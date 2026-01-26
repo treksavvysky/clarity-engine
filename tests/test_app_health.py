@@ -1,19 +1,5 @@
-import unittest
+def test_health_endpoint_returns_ok(client):
+    response = client.get("/healthz")
 
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-
-class HealthEndpointTests(unittest.TestCase):
-    def setUp(self):
-        self.client = TestClient(app)
-
-    def test_health_endpoint_returns_ok(self):
-        response = self.client.get("/healthz")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"status": "ok"})
-
-
-if __name__ == "__main__":
-    unittest.main()
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
