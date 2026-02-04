@@ -57,13 +57,13 @@ The API endpoints import and call functions from `tools/` directly to prevent se
 
 Tests use FastAPI's `TestClient` via the `client` fixture in `conftest.py`. The `example_manifest` fixture loads the golden example from `packets/examples/context_packet_example.json`.
 
-## Stage-0 Frozen Artifacts
+## Stage-02+ Evolution Policy
 
-These files must not change without explicit request:
-- `CONTEXT_PACKET_TEMPLATE.md`
-- `pcp_lite.schema.json`
-- `tools/compose_packet.py`
-- `tools/lint_packet.py`
+Stage-01 freeze is lifted. These files may now be extended:
+- `tools/lint_packet.py` — Add new warnings (no breaking changes to existing validation)
+- `tools/compose_packet.py` — Add new rendering (preserve deterministic output)
+- `pcp_lite.schema.json` — Add optional fields (required fields need migration)
+- `CONTEXT_PACKET_TEMPLATE.md` — Keep aligned with schema
 
 ## Constraints
 

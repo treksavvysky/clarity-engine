@@ -18,27 +18,26 @@ see docs/vision/mission.md for extended an extended mission statement
 see docs/vision/architecture.md for Architecture (Planned)
 ---
 
-## 2. Scope and Boundaries (Stage 0 → Stage-01.2)
+## 2. Scope and Boundaries
 
-### What stays frozen
-- Stage-0 artifacts remain authoritative and must not change unless explicitly requested:
-  - `CONTEXT_PACKET_TEMPLATE.md`
-  - `pcp_lite.schema.json`
-  - `tools/compose_packet.py`
-  - `tools/lint_packet.py`
+### Stage-01 (Complete)
+During Stage-01, Stage-0 artifacts were frozen to ensure safe introduction of the FastAPI layer. Stage-01 is now complete.
 
-### Stage-01.2 allowances
-- Additive runtime work is permitted under `app/` to host a minimal FastAPI boundary.
-- Shipped endpoints:
-  - `/healthz` returning `{ "status": "ok" }`.
-  - `/packets/compose` reusing the Stage-0 compose logic and returning deterministic `packet_md`, normalized `manifest`, and `context_sha` with no behavior changes to the CLI tools.
-- Dependencies for the runtime belong in `requirements.txt` (keep the list minimal and purpose-driven).
-- CI may include import/health checks for the FastAPI app but must remain deterministic and network-free.
-- The runtime must stay stateless: no authentication, persistence, outbound calls, or UI components.
+### Stage-02+ Policy
+- **Additive changes allowed:** Tools (`lint_packet.py`, `compose_packet.py`) may be extended with new functionality.
+- **No breaking changes:** Existing validation semantics and deterministic outputs must be preserved.
+- **Schema evolution:** `pcp_lite.schema.json` may add new optional fields; required fields need migration plan.
+- **Template sync:** `CONTEXT_PACKET_TEMPLATE.md` must stay aligned with schema changes.
+
+### Current Allowances (Stage-02)
+- Extend linter with new warnings (ambiguity detection, risk flags).
+- Add new optional fields to schema.
+- Enhance OpenAPI descriptions for GPT Action discovery.
+- Runtime remains stateless: no authentication, persistence, or outbound calls.
 
 ### Still out of scope
-- MCP servers, additional HTTP endpoints beyond `/healthz` and `/packets/compose`, UI builds, orchestration, or secret handling.
-- Network-dependent behavior and persistence layers remain prohibited.
+- MCP servers, UI builds, orchestration, or secret handling.
+- Network-dependent behavior and persistence layers remain prohibited until explicitly scoped.
 
 ---
 
