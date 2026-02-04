@@ -97,6 +97,59 @@
       },
       "minItems": 1,
       "description": "Optional links or references that anchor facts and constraints."
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "high_blast_radius",
+          "needs_human_signoff",
+          "missing_info",
+          "network_required",
+          "destructive_action",
+          "secrets_involved",
+          "external_dependency"
+        ]
+      },
+      "description": "Optional flags indicating risk factors. Downstream systems can use these to gate execution or require approval."
+    },
+    "allowed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "git_read",
+          "git_write",
+          "filesystem_read",
+          "filesystem_write",
+          "http_read",
+          "http_write",
+          "docker",
+          "shell_exec",
+          "secrets_read",
+          "database_read",
+          "database_write"
+        ]
+      },
+      "description": "Optional list of actions the executing agent is permitted to perform. Agents should validate against this before acting."
+    },
+    "evidence_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "pr_link",
+          "commit_sha",
+          "test_output",
+          "diff",
+          "logs",
+          "screenshot",
+          "artifact_path",
+          "api_response"
+        ]
+      },
+      "description": "Optional list of evidence types the agent must return to prove work completion."
     }
   }
 }

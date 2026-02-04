@@ -162,6 +162,27 @@ class LintPacketTests(unittest.TestCase):
             self.assertIn("[warning]", result.stdout)
             self.assertIn("Lint passed", result.stdout)
 
+    def test_stage02_fields_pass_lint(self):
+        """Test that risk_flags, allowed_actions, evidence_requirements pass lint."""
+        manifest = {
+            "mission": "Test Stage-02 fields",
+            "current_reality": ["Testing"],
+            "constraints": ["Must pass"],
+            "acceptance": ["Lint passes without errors"],
+            "required_artifacts": ["output"],
+            "failure_modes": ["rejection"],
+            "substage_gate": ["in scope"],
+            "risk_flags": ["high_blast_radius", "needs_human_signoff"],
+            "allowed_actions": ["git_read", "git_write"],
+            "evidence_requirements": ["pr_link", "test_output"],
+        }
+
+        with TemporaryDirectory() as tmp:
+            manifest_path = self._write_manifest(Path(tmp), manifest)
+            issues = self.lint_module.lint_file(manifest_path, self.schema_path)
+            errors = [i for i in issues if not i.startswith("[warning]")]
+            self.assertEqual(errors, [])
+
 
 if __name__ == "__main__":
     unittest.main()

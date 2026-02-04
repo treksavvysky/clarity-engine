@@ -61,6 +61,37 @@ class ComposePacketTests(unittest.TestCase):
             self.assertIn("- Test mission", packet_text)
             self.assertIn("- fact one", packet_text)
 
+    def test_compose_renders_stage02_fields(self):
+        """Test that risk_flags, allowed_actions, and evidence_requirements render."""
+        manifest = {
+            "mission": "Test Stage-02 fields",
+            "current_reality": ["Testing new fields"],
+            "constraints": ["Must render correctly"],
+            "acceptance": ["Output contains new sections"],
+            "required_artifacts": ["packet.md"],
+            "failure_modes": ["Missing sections"],
+            "substage_gate": ["In scope: testing"],
+            "risk_flags": ["high_blast_radius", "needs_human_signoff"],
+            "allowed_actions": ["git_read", "git_write", "filesystem_read"],
+            "evidence_requirements": ["pr_link", "test_output"],
+        }
+
+        packet_md = self.compose_module.render_packet_md(manifest)
+
+        # Verify new sections are rendered
+        self.assertIn("## Risk Flags (Optional)", packet_md)
+        self.assertIn("- high_blast_radius", packet_md)
+        self.assertIn("- needs_human_signoff", packet_md)
+
+        self.assertIn("## Allowed Actions (Optional)", packet_md)
+        self.assertIn("- git_read", packet_md)
+        self.assertIn("- git_write", packet_md)
+        self.assertIn("- filesystem_read", packet_md)
+
+        self.assertIn("## Evidence Requirements (Optional)", packet_md)
+        self.assertIn("- pr_link", packet_md)
+        self.assertIn("- test_output", packet_md)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,6 +46,15 @@
 - <link or reference 2>
 - ...
 
+## Risk Flags (Optional)
+- <risk flag: high_blast_radius | needs_human_signoff | missing_info | network_required | destructive_action | secrets_involved | external_dependency>
+
+## Allowed Actions (Optional)
+- <action: git_read | git_write | filesystem_read | filesystem_write | http_read | http_write | docker | shell_exec | secrets_read | database_read | database_write>
+
+## Evidence Requirements (Optional)
+- <evidence type: pr_link | commit_sha | test_output | diff | logs | screenshot | artifact_path | api_response>
+
 ---
 
 **Usage Notes**

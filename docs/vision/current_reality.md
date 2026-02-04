@@ -55,3 +55,18 @@ All Stage-01 substages (01.1–01.5) are complete.
 - Warnings are prefixed with `[warning]` and do not cause lint failure.
 - API response structure updated: `{ ok, errors, warnings }` — `ok` is true if no errors (warnings allowed).
 - CLI prints warnings but exits 0 if no errors.
+
+## Stage-02.2 Risk Flags Field
+- Schema extended with optional `risk_flags` array.
+- Valid values: `high_blast_radius`, `needs_human_signoff`, `missing_info`, `network_required`, `destructive_action`, `secrets_involved`, `external_dependency`.
+- Template and compose tool updated to render Risk Flags section.
+
+## Stage-02.3 Allowed Actions Field
+- Schema extended with optional `allowed_actions` array.
+- Valid values: `git_read`, `git_write`, `filesystem_read`, `filesystem_write`, `http_read`, `http_write`, `docker`, `shell_exec`, `secrets_read`, `database_read`, `database_write`.
+- Enables downstream agents to validate permissions before acting.
+
+## Stage-02.4 Evidence Requirements Field
+- Schema extended with optional `evidence_requirements` array.
+- Valid values: `pr_link`, `commit_sha`, `test_output`, `diff`, `logs`, `screenshot`, `artifact_path`, `api_response`.
+- Defines proof-of-work agents must return to verify completion.

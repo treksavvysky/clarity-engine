@@ -76,6 +76,9 @@ def render_packet_md(manifest: dict) -> str:
         ("Substage Gate / Work Envelope", manifest.get("substage_gate")),
         ("Notes or Scope Warnings (Optional)", manifest.get("notes")),
         ("Sources of Truth (Optional)", manifest.get("sources_of_truth")),
+        ("Risk Flags (Optional)", manifest.get("risk_flags")),
+        ("Allowed Actions (Optional)", manifest.get("allowed_actions")),
+        ("Evidence Requirements (Optional)", manifest.get("evidence_requirements")),
     ]
 
     for title, items in sections:
