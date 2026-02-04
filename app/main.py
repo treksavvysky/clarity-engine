@@ -3,7 +3,8 @@
 import json
 from typing import Any
 
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 
 from tools import compose_packet, lint_packet
 
@@ -26,9 +27,28 @@ app = FastAPI(
             "description": "Service health checks.",
         },
     ],
+    openapi_url=None,  # Disable default, we provide custom endpoint
 )
 
 LINT_SCHEMA = lint_packet.load_schema()
+
+
+@app.get(
+    "/openapi.json",
+    tags=["health"],
+    include_in_schema=False,
+)
+def get_openapi_schema(
+    server: str | None = Query(
+        default=None,
+        description="Server URL to include in the OpenAPI schema (e.g., https://your-host.com)",
+    ),
+) -> JSONResponse:
+    """Return OpenAPI schema with optional server URL for GPT Actions."""
+    schema = app.openapi()
+    if server:
+        schema["servers"] = [{"url": server}]
+    return JSONResponse(content=schema)
 
 
 @app.get(
