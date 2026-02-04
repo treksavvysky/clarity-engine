@@ -98,12 +98,14 @@ def compose_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
     summary="Validate a Context Packet manifest",
     description=(
         "Checks a manifest against the PCP-lite schema and content rules. "
-        "Returns ok=true if valid, or ok=false with a list of issues describing "
-        "missing fields, type errors, or empty required sections. "
-        "Use this before composing to catch problems early."
+        "Returns ok=true if valid (no errors), or ok=false with errors. "
+        "Warnings about vague language or untestable criteria are included "
+        "but do not cause ok=false. Use this before composing to catch problems early."
     ),
 )
 def lint_packet_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
-    """Lint a Context Packet manifest. Returns ok (bool) and issues (list)."""
+    """Lint a Context Packet manifest. Returns ok (bool), errors, and warnings."""
     issues = lint_packet.lint_manifest(manifest, LINT_SCHEMA)
-    return {"ok": not issues, "issues": issues}
+    errors = [i for i in issues if not i.startswith("[warning]")]
+    warnings = [i for i in issues if i.startswith("[warning]")]
+    return {"ok": not errors, "errors": errors, "warnings": warnings}

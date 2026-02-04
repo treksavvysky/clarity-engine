@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,48 @@ CRITICAL_FIELDS = {
     "required_artifacts": "required artifacts",
     "failure_modes": "failure modes",
 }
+
+# Vague language patterns that reduce clarity and testability
+VAGUE_PATTERNS = [
+    (r"\bmaybe\b", "maybe"),
+    (r"\bperhaps\b", "perhaps"),
+    (r"\bmight\b", "might"),
+    (r"\bcould\b", "could"),
+    (r"\bshould\b", "should"),
+    (r"\btry to\b", "try to"),
+    (r"\battempt to\b", "attempt to"),
+    (r"\bif possible\b", "if possible"),
+    (r"\bwhen possible\b", "when possible"),
+    (r"\bas needed\b", "as needed"),
+    (r"\bas appropriate\b", "as appropriate"),
+    (r"\bgenerally\b", "generally"),
+    (r"\busually\b", "usually"),
+    (r"\bsomewhat\b", "somewhat"),
+    (r"\bfairly\b", "fairly"),
+    (r"\bprobably\b", "probably"),
+    (r"\bapproximately\b", "approximately"),
+    (r"\betc\.?\b", "etc"),
+    (r"\band so on\b", "and so on"),
+]
+
+# Fields to check for vague language
+VAGUE_CHECK_FIELDS = ["mission", "acceptance", "constraints", "required_artifacts"]
+
+# Action verbs that indicate testable/observable outcomes
+ACTION_VERBS = [
+    "return", "returns", "respond", "responds", "output", "outputs",
+    "create", "creates", "delete", "deletes", "update", "updates",
+    "send", "sends", "receive", "receives", "write", "writes", "read", "reads",
+    "pass", "passes", "fail", "fails", "exist", "exists",
+    "contain", "contains", "include", "includes", "exclude", "excludes",
+    "match", "matches", "equal", "equals", "display", "displays",
+    "show", "shows", "hide", "hides", "enable", "enables", "disable", "disables",
+    "start", "starts", "stop", "stops", "run", "runs", "execute", "executes",
+    "log", "logs", "print", "prints", "emit", "emits", "produce", "produces",
+    "validate", "validates", "verify", "verifies", "check", "checks",
+    "accept", "accepts", "reject", "rejects", "allow", "allows", "deny", "denies",
+    "complete", "completes", "finish", "finishes", "succeed", "succeeds",
+]
 
 
 def load_json_file(path: Path) -> Any:
@@ -118,21 +161,94 @@ def _validate_field_types(manifest: dict, properties: dict) -> list[str]:
     return errors
 
 
-def lint_manifest(manifest: Any, schema: dict) -> list[str]:
-    """Return a list of lint errors for the manifest given the schema."""
-    errors = _validate_object(manifest)
-    if errors:
-        return errors
+def _detect_vague_language(manifest: dict) -> list[str]:
+    """Detect vague language patterns in critical fields. Returns warnings."""
+    warnings: list[str] = []
+
+    for field in VAGUE_CHECK_FIELDS:
+        value = manifest.get(field)
+        if not value:
+            continue
+
+        label = CRITICAL_FIELDS.get(field, field)
+        texts = [value] if isinstance(value, str) else value if isinstance(value, list) else []
+
+        for idx, text in enumerate(texts):
+            if not isinstance(text, str):
+                continue
+            text_lower = text.lower()
+            for pattern, word in VAGUE_PATTERNS:
+                if re.search(pattern, text_lower):
+                    if isinstance(value, list):
+                        warnings.append(
+                            f"[warning] Vague language '{word}' in '{label}' entry {idx}: \"{text[:50]}...\""
+                            if len(text) > 50 else
+                            f"[warning] Vague language '{word}' in '{label}' entry {idx}: \"{text}\""
+                        )
+                    else:
+                        warnings.append(
+                            f"[warning] Vague language '{word}' in '{label}': \"{text[:50]}...\""
+                            if len(text) > 50 else
+                            f"[warning] Vague language '{word}' in '{label}': \"{text}\""
+                        )
+                    break  # One warning per entry
+
+    return warnings
+
+
+def _detect_untestable_acceptance(manifest: dict) -> list[str]:
+    """Detect acceptance criteria that lack action verbs. Returns warnings."""
+    warnings: list[str] = []
+    acceptance = manifest.get("acceptance")
+
+    if not isinstance(acceptance, list):
+        return warnings
+
+    action_pattern = re.compile(r"\b(" + "|".join(ACTION_VERBS) + r")\b", re.IGNORECASE)
+
+    for idx, criterion in enumerate(acceptance):
+        if not isinstance(criterion, str):
+            continue
+        if not action_pattern.search(criterion):
+            warnings.append(
+                f"[warning] Acceptance entry {idx} may not be testable (no action verb found): \"{criterion[:50]}...\""
+                if len(criterion) > 50 else
+                f"[warning] Acceptance entry {idx} may not be testable (no action verb found): \"{criterion}\""
+            )
+
+    return warnings
+
+
+def lint_manifest(manifest: Any, schema: dict, warn_ambiguity: bool = True) -> list[str]:
+    """Return a list of lint errors and warnings for the manifest given the schema.
+
+    Args:
+        manifest: The manifest dict to validate.
+        schema: The JSON schema to validate against.
+        warn_ambiguity: If True, include warnings for vague language and untestable
+            acceptance criteria. Defaults to True.
+
+    Returns:
+        A list of issues. Errors are plain strings; warnings are prefixed with "[warning]".
+    """
+    issues = _validate_object(manifest)
+    if issues:
+        return issues
 
     properties = schema.get("properties", {}) if isinstance(schema, dict) else {}
     required = schema.get("required", []) if isinstance(schema, dict) else []
     additional_allowed = schema.get("additionalProperties", True)
 
-    errors.extend(_validate_required_fields(manifest, required))
-    errors.extend(_validate_additional_properties(manifest, properties, additional_allowed))
-    errors.extend(_validate_field_types(manifest, properties))
+    issues.extend(_validate_required_fields(manifest, required))
+    issues.extend(_validate_additional_properties(manifest, properties, additional_allowed))
+    issues.extend(_validate_field_types(manifest, properties))
 
-    return errors
+    # Ambiguity detection (Stage-02.1)
+    if warn_ambiguity:
+        issues.extend(_detect_vague_language(manifest))
+        issues.extend(_detect_untestable_acceptance(manifest))
+
+    return issues
 
 
 def lint_file(manifest_path: Path, schema_path: Path = DEFAULT_SCHEMA_PATH) -> list[str]:
@@ -154,12 +270,19 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    errors = lint_file(Path(args.manifest_path))
+    issues = lint_file(Path(args.manifest_path))
+
+    errors = [i for i in issues if not i.startswith("[warning]")]
+    warnings = [i for i in issues if i.startswith("[warning]")]
 
     if errors:
         for message in errors:
             print(message)
         sys.exit(1)
+
+    if warnings:
+        for message in warnings:
+            print(message)
 
     print("Lint passed: manifest is structurally valid and complete.")
     sys.exit(0)

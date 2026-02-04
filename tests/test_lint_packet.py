@@ -31,7 +31,7 @@ class LintPacketTests(unittest.TestCase):
             "mission": "Test mission",
             "current_reality": ["fact one"],
             "constraints": ["constraint one"],
-            "acceptance": ["acceptance one"],
+            "acceptance": ["Tests pass successfully"],  # Has action verb
             "required_artifacts": ["artifact one"],
             "failure_modes": ["failure one"],
             "substage_gate": ["gate one"],
@@ -39,7 +39,8 @@ class LintPacketTests(unittest.TestCase):
 
         with TemporaryDirectory() as tmp:
             manifest_path = self._write_manifest(Path(tmp), manifest)
-            errors = self.lint_module.lint_file(manifest_path, self.schema_path)
+            issues = self.lint_module.lint_file(manifest_path, self.schema_path)
+            errors = [i for i in issues if not i.startswith("[warning]")]
             self.assertEqual(errors, [])
 
     def test_missing_required_section_reports_error(self):
@@ -55,15 +56,50 @@ class LintPacketTests(unittest.TestCase):
 
         with TemporaryDirectory() as tmp:
             manifest_path = self._write_manifest(Path(tmp), manifest)
-            errors = self.lint_module.lint_file(manifest_path, self.schema_path)
+            issues = self.lint_module.lint_file(manifest_path, self.schema_path)
+            errors = [i for i in issues if not i.startswith("[warning]")]
             self.assertTrue(any("acceptance" in err for err in errors))
+
+    def test_vague_language_returns_warning(self):
+        manifest = {
+            "mission": "Maybe complete the task",
+            "current_reality": ["fact one"],
+            "constraints": ["constraint one"],
+            "acceptance": ["Tests pass successfully"],
+            "required_artifacts": ["artifact one"],
+            "failure_modes": ["failure one"],
+            "substage_gate": ["gate one"],
+        }
+
+        with TemporaryDirectory() as tmp:
+            manifest_path = self._write_manifest(Path(tmp), manifest)
+            issues = self.lint_module.lint_file(manifest_path, self.schema_path)
+            warnings = [i for i in issues if i.startswith("[warning]")]
+            self.assertTrue(any("Vague language" in w and "maybe" in w.lower() for w in warnings))
+
+    def test_untestable_acceptance_returns_warning(self):
+        manifest = {
+            "mission": "Test mission",
+            "current_reality": ["fact one"],
+            "constraints": ["constraint one"],
+            "acceptance": ["Good code quality"],  # No action verb
+            "required_artifacts": ["artifact one"],
+            "failure_modes": ["failure one"],
+            "substage_gate": ["gate one"],
+        }
+
+        with TemporaryDirectory() as tmp:
+            manifest_path = self._write_manifest(Path(tmp), manifest)
+            issues = self.lint_module.lint_file(manifest_path, self.schema_path)
+            warnings = [i for i in issues if i.startswith("[warning]")]
+            self.assertTrue(any("may not be testable" in w for w in warnings))
 
     def test_cli_reports_success_and_failure(self):
         valid_manifest = {
             "mission": "CLI mission",
             "current_reality": ["fact one"],
             "constraints": ["constraint one"],
-            "acceptance": ["acceptance one"],
+            "acceptance": ["Endpoint returns 200"],  # Has action verb
             "required_artifacts": ["artifact one"],
             "failure_modes": ["failure one"],
             "substage_gate": ["gate one"],
@@ -73,7 +109,7 @@ class LintPacketTests(unittest.TestCase):
             "mission": "",
             "current_reality": [],
             "constraints": ["constraint one"],
-            "acceptance": ["acceptance one"],
+            "acceptance": ["Tests pass"],
             "required_artifacts": ["artifact one"],
             "failure_modes": ["failure one"],
             "substage_gate": ["gate one"],
@@ -100,6 +136,31 @@ class LintPacketTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("current reality", result.stdout)
+
+    def test_cli_prints_warnings_but_still_passes(self):
+        manifest_with_vague = {
+            "mission": "Maybe do the task",  # Vague
+            "current_reality": ["fact one"],
+            "constraints": ["constraint one"],
+            "acceptance": ["Tests pass"],  # Has action verb
+            "required_artifacts": ["artifact one"],
+            "failure_modes": ["failure one"],
+            "substage_gate": ["gate one"],
+        }
+
+        script_path = Path(__file__).resolve().parent.parent / "tools" / "lint_packet.py"
+
+        with TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            manifest_path = self._write_manifest(tmp_path, manifest_with_vague)
+            result = subprocess.run(
+                [sys.executable, str(script_path), str(manifest_path)],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0)  # Warnings don't fail
+            self.assertIn("[warning]", result.stdout)
+            self.assertIn("Lint passed", result.stdout)
 
 
 if __name__ == "__main__":

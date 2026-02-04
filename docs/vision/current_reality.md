@@ -48,3 +48,10 @@ All Stage-01 substages (01.1–01.5) are complete.
 - Endpoints tagged (`packets`, `health`) with rich summaries and descriptions.
 - Version bumped to 0.2.0.
 - Custom `/openapi.json` endpoint accepts `?server=<url>` query param to inject the `servers` field for GPT Action imports (e.g., `/openapi.json?server=https://your-host.com`).
+
+## Stage-02.1 Ambiguity Detection
+- Linter extended with vague language detection (flags: "maybe", "should", "try to", "if possible", etc.).
+- Linter detects untestable acceptance criteria (entries lacking action verbs like "returns", "creates", "passes").
+- Warnings are prefixed with `[warning]` and do not cause lint failure.
+- API response structure updated: `{ ok, errors, warnings }` — `ok` is true if no errors (warnings allowed).
+- CLI prints warnings but exits 0 if no errors.
