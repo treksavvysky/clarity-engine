@@ -47,3 +47,4 @@ All Stage-01 substages (01.1–01.5) are complete.
 - App description optimized for GPT action discovery: "Intent-to-packet compiler for AI agents."
 - Endpoints tagged (`packets`, `health`) with rich summaries and descriptions.
 - Version bumped to 0.2.0.
+- Custom `/openapi.json` endpoint accepts `?server=<url>` query param to inject the `servers` field for GPT Action imports (e.g., `/openapi.json?server=https://your-host.com`).
