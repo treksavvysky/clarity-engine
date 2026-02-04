@@ -1,4 +1,4 @@
-"""FastAPI application for Clarity Engine Stage-01.3."""
+"""FastAPI application for Clarity Engine."""
 
 import json
 from typing import Any
@@ -7,27 +7,57 @@ from fastapi import Body, FastAPI, HTTPException
 
 from tools import compose_packet, lint_packet
 
-app = FastAPI(title="Clarity Engine", version="0.1.0", docs_url=None, redoc_url=None)
+app = FastAPI(
+    title="Clarity Engine",
+    version="0.2.0",
+    description=(
+        "Intent-to-packet compiler for AI agents. "
+        "Transforms human intent into standardized, testable Context Packets "
+        "that agents can execute without ambiguity. "
+        "Use /packets/compose to generate packets and /packets/lint to validate manifests."
+    ),
+    openapi_tags=[
+        {
+            "name": "packets",
+            "description": "Compose and validate Context Packet manifests.",
+        },
+        {
+            "name": "health",
+            "description": "Service health checks.",
+        },
+    ],
+)
 
 LINT_SCHEMA = lint_packet.load_schema()
 
 
-@app.get("/healthz")
+@app.get(
+    "/healthz",
+    tags=["health"],
+    summary="Check service health",
+    description="Returns a simple status payload. Use this to verify the service is running.",
+)
 def read_health() -> dict[str, str]:
     """Return a simple status payload for health checks."""
-
     return {"status": "ok"}
 
 
-@app.post("/packets/compose")
+@app.post(
+    "/packets/compose",
+    tags=["packets"],
+    summary="Compose a Context Packet from a manifest",
+    description=(
+        "Takes a JSON manifest with mission, constraints, acceptance criteria, and other fields. "
+        "Returns the rendered packet as markdown, the normalized manifest, and a deterministic "
+        "content hash (context_sha) that uniquely identifies this packet. "
+        "The same input always produces the same output."
+    ),
+)
 def compose_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
-    """Compose a Context Packet using the Stage-0 compose logic.
+    """Compose a Context Packet using deterministic logic.
 
-    The endpoint reuses the deterministic Stage-0 compose functions to avoid
-    semantic drift. It returns the rendered packet markdown, normalized
-    manifest object, and context SHA.
+    Returns packet_md (markdown), manifest (normalized JSON), and context_sha (hash).
     """
-
     if not isinstance(manifest, dict):
         raise HTTPException(status_code=400, detail="Manifest must be a JSON object.")
 
@@ -42,9 +72,18 @@ def compose_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-@app.post("/packets/lint")
+@app.post(
+    "/packets/lint",
+    tags=["packets"],
+    summary="Validate a Context Packet manifest",
+    description=(
+        "Checks a manifest against the PCP-lite schema and content rules. "
+        "Returns ok=true if valid, or ok=false with a list of issues describing "
+        "missing fields, type errors, or empty required sections. "
+        "Use this before composing to catch problems early."
+    ),
+)
 def lint_packet_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
-    """Lint a Context Packet manifest using the Stage-0 linter logic."""
-
+    """Lint a Context Packet manifest. Returns ok (bool) and issues (list)."""
     issues = lint_packet.lint_manifest(manifest, LINT_SCHEMA)
     return {"ok": not issues, "issues": issues}

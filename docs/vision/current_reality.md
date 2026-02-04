@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-01.5
+# Current Reality (Facts Only) — Stage-02.5
 
 ## Repository / Contract Baseline
 - Stage 0 artifacts and CLI tools remain unchanged and authoritative:
@@ -40,4 +40,10 @@
 - README.md already reflects Stage-01.3 usage and endpoints.
 
 ## Stage-01 Completion
-All Stage-01 substages (01.1–01.5) are complete. The project is ready to proceed to Stage-02.
+All Stage-01 substages (01.1–01.5) are complete.
+
+## Stage-02.5 OpenAPI / Custom GPT Actions
+- OpenAPI documentation enabled at `/docs` (Swagger UI) and `/openapi.json`.
+- App description optimized for GPT action discovery: "Intent-to-packet compiler for AI agents."
+- Endpoints tagged (`packets`, `health`) with rich summaries and descriptions.
+- Version bumped to 0.2.0.
