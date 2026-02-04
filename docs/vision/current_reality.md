@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-01.4
+# Current Reality (Facts Only) — Stage-01.5
 
 ## Repository / Contract Baseline
 - Stage 0 artifacts and CLI tools remain unchanged and authoritative:
@@ -32,3 +32,12 @@
 
 ## Service Properties
 - The service remains stateless: no persistence, authentication, outbound network calls, or UI components are present.
+
+## Stage-01.5 Documentation State
+- `CLAUDE.md` added at repository root with project guidance for Claude Code (commands, architecture, constraints).
+- `docs/DESCRIPTION.md` added explaining the "intent → execution packet" vision and architectural positioning.
+- `docs/vision/architecture.md` updated with Future Stages Roadmap (Stages 02–06).
+- README.md already reflects Stage-01.3 usage and endpoints.
+
+## Stage-01 Completion
+All Stage-01 substages (01.1–01.5) are complete. The project is ready to proceed to Stage-02.
