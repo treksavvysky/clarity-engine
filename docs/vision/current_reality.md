@@ -1,18 +1,20 @@
-# Current Reality (Facts Only) — Stage-02.5
+# Current Reality (Facts Only) — Stage-02 Complete
 
 ## Repository / Contract Baseline
-- Stage 0 artifacts and CLI tools remain unchanged and authoritative:
-  - `CONTEXT_PACKET_TEMPLATE.md`
-  - `pcp_lite.schema.json`
-  - `tools/compose_packet.py`
-  - `tools/lint_packet.py`
+- Core artifacts have evolved through Stage-02:
+  - `CONTEXT_PACKET_TEMPLATE.md` — Updated with risk_flags, allowed_actions, evidence_requirements sections
+  - `pcp_lite.schema.json` — Extended with Stage-02 optional fields
+  - `tools/compose_packet.py` — Renders all schema fields including Stage-02 additions
+  - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
 
-## Stage-01.4 Implementation State
-- A FastAPI application at `app/main.py` exposes:
+## API Implementation State
+- A FastAPI application at `app/main.py` (v0.2.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
-  - `POST /packets/compose` delegating to Stage-0 compose logic.
-  - `POST /packets/lint` delegating to Stage-0 lint logic and returning only `ok` and `issues`.
-  - Minimal deterministic tests exercise `/healthz`, `/packets/compose`, and `/packets/lint` using the example manifest.
+  - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
+  - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
+  - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
+- OpenAPI docs available at `/docs` (Swagger UI).
+- 15 tests cover endpoints, CLI tools, ambiguity detection, and Stage-02 fields.
 
 ## Dependency / Runtime Reality
 - A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
@@ -70,3 +72,6 @@ All Stage-01 substages (01.1–01.5) are complete.
 - Schema extended with optional `evidence_requirements` array.
 - Valid values: `pr_link`, `commit_sha`, `test_output`, `diff`, `logs`, `screenshot`, `artifact_path`, `api_response`.
 - Defines proof-of-work agents must return to verify completion.
+
+## Stage-02 Completion
+All Stage-02 substages (02.1–02.5) are complete. The project is ready to proceed to Stage-03 (Registry & Packet Operations).
