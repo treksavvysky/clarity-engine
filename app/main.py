@@ -229,6 +229,42 @@ def _diff_manifests(left: dict, right: dict) -> dict[str, Any]:
 
 
 @app.post(
+    "/packets/enqueue",
+    tags=["packets"],
+    summary="Compose, register, and return a JCT-ready envelope",
+    description=(
+        "Composes the manifest, persists it to the registry, and returns an envelope "
+        "suitable for hand-off to a JCT-like orchestrator. task_id equals context_sha. "
+        "Idempotent: a second call returns registered=false but the same envelope. "
+        "Clarity Engine never calls callback_url — it is transport-only data."
+    ),
+)
+def enqueue_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Compose + register + return JCT envelope. Deterministic for the same manifest."""
+    if not isinstance(manifest, dict):
+        raise HTTPException(status_code=400, detail="Manifest must be a JSON object.")
+
+    normalized_manifest = compose_packet.normalize_manifest(manifest)
+    packet_md = compose_packet.render_packet_md(manifest) + "\n"
+    context_sha = compose_packet.compute_context_sha(normalized_manifest)
+    registered = registry.write(context_sha, normalized_manifest, packet_md)
+    normalized = json.loads(normalized_manifest)
+
+    return {
+        "task_id": context_sha,
+        "context_sha": context_sha,
+        "mission": normalized.get("mission", ""),
+        "manifest": normalized,
+        "packet_md": packet_md,
+        "allowed_actions": normalized.get("allowed_actions", []),
+        "evidence_requirements": normalized.get("evidence_requirements", []),
+        "risk_flags": normalized.get("risk_flags", []),
+        "callback_url": normalized.get("callback_url"),
+        "registered": registered,
+    }
+
+
+@app.post(
     "/packets/diff",
     tags=["packets"],
     summary="Diff two Context Packets",

@@ -155,6 +155,11 @@
       "type": "string",
       "pattern": "^[a-f0-9]{64}$",
       "description": "Optional context_sha of the parent packet this one was derived from. Enables lineage tracking."
+    },
+    "callback_url": {
+      "type": "string",
+      "pattern": "^https?://[^\\s]+$",
+      "description": "Optional URL an orchestrator (e.g., JCT) may call on task status change. Clarity Engine never calls this; it is transport-only data."
     }
   }
 }

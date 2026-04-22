@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-03 Complete
+# Current Reality (Facts Only) — Stage-04 Complete
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-02:
@@ -94,4 +94,17 @@ All Stage-02 substages (02.1–02.5) are complete.
 - `GET /packets/{sha}/ancestors` walks the lineage chain and returns ancestors ordered nearest → oldest.
 
 ## Stage-03 Completion
-All Stage-03 substages (03.1–03.3) are complete. Test count: 31. Ready to proceed to Stage-04 (JCT Integration).
+All Stage-03 substages (03.1–03.3) are complete.
+
+## Stage-04.1 Enqueue Shape
+- `POST /packets/enqueue` composes + registers + returns a JCT-ready envelope.
+- `task_id === context_sha` (no separate id space).
+- Idempotent: second call returns `registered: false`; envelope is deterministic.
+
+## Stage-04.2 Callback URL Field
+- Optional `callback_url` added to schema (`^https?://[^\s]+$`).
+- Linter rejects non-URL values.
+- Clarity Engine never calls the URL; it is transport-only data for downstream orchestrators.
+
+## Stage-04 Completion
+All Stage-04 substages (04.1–04.2) are complete. Test count: 37. Ready to proceed to Stage-05 (MCP Server).
