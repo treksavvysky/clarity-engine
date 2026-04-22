@@ -81,3 +81,8 @@ Tools and schema may be extended with additive changes:
 - **Deterministic outputs**: Same manifest input must produce identical outputs
 - **No network dependencies**: CI and tests must work offline
 - **Minimal dependencies**: Only FastAPI + Uvicorn + pytest are approved
+
+## Workflow
+
+- **Commit after each completed substage or discrete task.** One substage = one commit. Use the Stage-XX.Y label in the subject line (e.g. `Implement Stage-03.2: Packet Diffing`) and describe what changed and why in the body. This keeps the history auditable and lets reviewers trace work to its plan in `docs/vision/`.
+- Run the test suite before committing; the suite must be green at every commit on `main`.
