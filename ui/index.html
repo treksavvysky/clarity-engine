@@ -54,6 +54,7 @@
 <nav>
   <button class="tab-btn active" data-tab="browser">Browser</button>
   <button class="tab-btn" data-tab="diff">Diff</button>
+  <button class="tab-btn" data-tab="editor">Editor</button>
 </nav>
 <main>
   <section id="tab-browser" class="tab active">
@@ -87,6 +88,28 @@
     <div class="panel" style="margin-top:16px;">
       <h2>Result</h2>
       <div id="diff-result"><div class="empty">Provide two sides and click "Compute diff".</div></div>
+    </div>
+  </section>
+
+  <section id="tab-editor" class="tab">
+    <div class="row" style="grid-template-columns: 1fr 1fr;">
+      <div class="panel">
+        <h2>Manifest (JSON)
+          <button class="secondary" id="editor-load-example" style="float:right;padding:4px 10px">Load example</button>
+        </h2>
+        <textarea id="editor-input" style="width:100%;height:520px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='Paste a PCP-lite manifest (JSON)…'></textarea>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="secondary" id="editor-lint">Lint</button>
+          <button class="secondary" id="editor-compose">Compose</button>
+          <button class="primary" id="editor-register">Register</button>
+          <button class="primary" id="editor-enqueue">Enqueue</button>
+          <span id="editor-status" style="color:var(--muted);align-self:center;margin-left:8px;"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Response</h2>
+        <div id="editor-response"><div class="empty">Choose an action to send this manifest to the API.</div></div>
+      </div>
     </div>
   </section>
 </main>
@@ -205,9 +228,76 @@ async function runDiff() {
   }
 }
 
+const EXAMPLE_MANIFEST = {
+  project: 'Clarity Engine',
+  stage: 'Example',
+  substage: 'UI demo',
+  version: '0.3.0',
+  mission: 'Demonstrate the editor round-tripping a manifest through the API.',
+  current_reality: [
+    'The editor tab posts manifests directly to the packet endpoints.',
+    'Responses are rendered as pretty-printed JSON.'
+  ],
+  constraints: [
+    'Must not mutate the manifest before sending.',
+    'Must surface API errors verbatim.'
+  ],
+  acceptance: [
+    'Lint returns ok=true for this example.',
+    'Register returns a 64-char context_sha.'
+  ],
+  required_artifacts: [
+    'An example manifest loadable with one click.'
+  ],
+  failure_modes: [
+    'Invalid JSON silently accepted.'
+  ],
+  substage_gate: [
+    'In-scope: editor round-trip to lint/compose/register/enqueue.'
+  ]
+};
+
+function parseManifest() {
+  const text = $('#editor-input').value.trim();
+  if (!text) throw new Error('Manifest is empty.');
+  return JSON.parse(text);
+}
+
+function renderEditorResponse(data) {
+  const el = $('#editor-response');
+  el.innerHTML = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+}
+
+function renderEditorError(err) {
+  const msg = err.body ? JSON.stringify(err.body, null, 2) : (err.message || String(err));
+  $('#editor-response').innerHTML = `<pre class="error">${escapeHtml(msg)}</pre>`;
+}
+
+async function editorAction(label, method, path) {
+  const status = $('#editor-status');
+  status.textContent = `${label}…`;
+  try {
+    const manifest = parseManifest();
+    const result = await api(method, path, manifest);
+    status.textContent = '';
+    renderEditorResponse(result);
+    if (path === '/packets/register' || path === '/packets/enqueue') loadPackets();
+  } catch (err) {
+    status.textContent = '';
+    renderEditorError(err);
+  }
+}
+
 tabSwitcher();
 $('#refresh').addEventListener('click', loadPackets);
 $('#diff-run').addEventListener('click', runDiff);
+$('#editor-load-example').addEventListener('click', () => {
+  $('#editor-input').value = JSON.stringify(EXAMPLE_MANIFEST, null, 2);
+});
+$('#editor-lint').addEventListener('click', () => editorAction('Linting', 'POST', '/packets/lint'));
+$('#editor-compose').addEventListener('click', () => editorAction('Composing', 'POST', '/packets/compose'));
+$('#editor-register').addEventListener('click', () => editorAction('Registering', 'POST', '/packets/register'));
+$('#editor-enqueue').addEventListener('click', () => editorAction('Enqueuing', 'POST', '/packets/enqueue'));
 loadPackets();
 </script>
 </body>
