@@ -169,3 +169,54 @@ def get_packet_endpoint(sha: str) -> dict[str, Any]:
         "manifest": record["manifest"],
         "packet_md": record["packet_md"],
     }
+
+
+def _resolve_side(value: Any, side: str) -> dict:
+    """Accept a sha string or inline manifest dict; return the manifest."""
+    if isinstance(value, str):
+        record = registry.read(value)
+        if record is None:
+            raise HTTPException(status_code=404, detail=f"Packet {value} not found ({side}).")
+        return record["manifest"]
+    if isinstance(value, dict):
+        return value
+    raise HTTPException(
+        status_code=400,
+        detail=f"'{side}' must be a context_sha string or an inline manifest object.",
+    )
+
+
+def _diff_manifests(left: dict, right: dict) -> dict[str, Any]:
+    """Field-level diff of two manifests. Returns added/removed/changed."""
+    left_keys = set(left)
+    right_keys = set(right)
+    added = {k: right[k] for k in sorted(right_keys - left_keys)}
+    removed = {k: left[k] for k in sorted(left_keys - right_keys)}
+    changed = {
+        k: {"before": left[k], "after": right[k]}
+        for k in sorted(left_keys & right_keys)
+        if left[k] != right[k]
+    }
+    return {"added": added, "removed": removed, "changed": changed}
+
+
+@app.post(
+    "/packets/diff",
+    tags=["packets"],
+    summary="Diff two Context Packets",
+    description=(
+        "Compares two manifests and returns field-level differences. "
+        "Each side ('left', 'right') is either a context_sha string (looked up in the registry) "
+        "or an inline manifest object. Response has added/removed/changed keys with only differing fields."
+    ),
+)
+def diff_packets_endpoint(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    """Return {added, removed, changed} for two manifests."""
+    if not isinstance(body, dict) or "left" not in body or "right" not in body:
+        raise HTTPException(
+            status_code=400,
+            detail="Request body must include 'left' and 'right'.",
+        )
+    left = _resolve_side(body["left"], "left")
+    right = _resolve_side(body["right"], "right")
+    return _diff_manifests(left, right)
