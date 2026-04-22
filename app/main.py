@@ -1,13 +1,17 @@
 """FastAPI application for Clarity Engine."""
 
 import json
+from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import registry
 from tools import compose_packet, lint_packet
+
+UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 app = FastAPI(
     title="Clarity Engine",
@@ -61,6 +65,15 @@ def get_openapi_schema(
 def read_health() -> dict[str, str]:
     """Return a simple status payload for health checks."""
     return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def serve_ui_root() -> FileResponse:
+    """Serve the UI entry point."""
+    return FileResponse(UI_DIR / "index.html")
+
+
+app.mount("/ui", StaticFiles(directory=UI_DIR), name="ui")
 
 
 @app.post(
