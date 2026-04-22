@@ -53,6 +53,7 @@
 </header>
 <nav>
   <button class="tab-btn active" data-tab="browser">Browser</button>
+  <button class="tab-btn" data-tab="diff">Diff</button>
 </nav>
 <main>
   <section id="tab-browser" class="tab active">
@@ -65,6 +66,27 @@
         <h2>Detail</h2>
         <div id="detail"><div class="empty">Select a packet to view its manifest and markdown.</div></div>
       </div>
+    </div>
+  </section>
+
+  <section id="tab-diff" class="tab">
+    <div class="row" style="grid-template-columns: 1fr 1fr;">
+      <div class="panel">
+        <h2>Left (sha or JSON manifest)</h2>
+        <textarea id="diff-left" style="width:100%;height:180px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='e.g. c8d89234… or {"mission": "…", …}'></textarea>
+      </div>
+      <div class="panel">
+        <h2>Right (sha or JSON manifest)</h2>
+        <textarea id="diff-right" style="width:100%;height:180px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='e.g. 0e8d952… or inline manifest JSON'></textarea>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="primary" id="diff-run">Compute diff</button>
+      <span id="diff-status" style="color:var(--muted);margin-left:12px;"></span>
+    </div>
+    <div class="panel" style="margin-top:16px;">
+      <h2>Result</h2>
+      <div id="diff-result"><div class="empty">Provide two sides and click "Compute diff".</div></div>
     </div>
   </section>
 </main>
@@ -137,8 +159,55 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+function parseSide(value) {
+  const trimmed = value.trim();
+  if (!trimmed) throw new Error('empty');
+  if (/^[a-f0-9]{64}$/.test(trimmed)) return trimmed;
+  try { return JSON.parse(trimmed); } catch { throw new Error('input is neither a 64-char sha nor valid JSON'); }
+}
+
+function renderDiff(diff) {
+  const wrap = document.createElement('div');
+  const section = (title, color, entries, renderEntry) => {
+    const h = document.createElement('h3');
+    h.textContent = `${title} (${entries.length})`;
+    h.style.color = color;
+    h.style.margin = '12px 0 6px';
+    wrap.appendChild(h);
+    if (!entries.length) { const p = document.createElement('div'); p.className = 'empty'; p.textContent = 'none'; wrap.appendChild(p); return; }
+    for (const [key, val] of entries) {
+      const pre = document.createElement('pre');
+      pre.textContent = renderEntry(key, val);
+      wrap.appendChild(pre);
+    }
+  };
+  section('Added', 'var(--added)', Object.entries(diff.added), (k, v) => `${k}: ${JSON.stringify(v, null, 2)}`);
+  section('Removed', 'var(--removed)', Object.entries(diff.removed), (k, v) => `${k}: ${JSON.stringify(v, null, 2)}`);
+  section('Changed', 'var(--changed)', Object.entries(diff.changed), (k, v) => `${k}:\n- before: ${JSON.stringify(v.before, null, 2)}\n+ after:  ${JSON.stringify(v.after, null, 2)}`);
+  return wrap;
+}
+
+async function runDiff() {
+  const status = $('#diff-status');
+  const out = $('#diff-result');
+  status.textContent = 'Computing…';
+  out.innerHTML = '';
+  try {
+    const left = parseSide($('#diff-left').value);
+    const right = parseSide($('#diff-right').value);
+    const diff = await api('POST', '/packets/diff', { left, right });
+    status.textContent = '';
+    out.innerHTML = '';
+    out.appendChild(renderDiff(diff));
+  } catch (err) {
+    status.textContent = '';
+    out.innerHTML = `<div class="error">${escapeHtml(err.message || JSON.stringify(err))}</div>`;
+  }
+}
+
 tabSwitcher();
 $('#refresh').addEventListener('click', loadPackets);
+$('#diff-run').addEventListener('click', runDiff);
 loadPackets();
 </script>
 </body>
