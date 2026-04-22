@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-04 Complete
+# Current Reality (Facts Only) — Stage-05 Complete
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-02:
@@ -107,4 +107,21 @@ All Stage-03 substages (03.1–03.3) are complete.
 - Clarity Engine never calls the URL; it is transport-only data for downstream orchestrators.
 
 ## Stage-04 Completion
-All Stage-04 substages (04.1–04.2) are complete. Test count: 37. Ready to proceed to Stage-05 (MCP Server).
+All Stage-04 substages (04.1–04.2) are complete.
+
+## Stage-05.1 MCP Tool Exposure
+- `app/mcp_server.py` exposes eight MCP tools over stdio: `compose_packet_tool`, `lint_packet_tool`, `register_packet_tool`, `get_packet_tool`, `list_packets_tool`, `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
+- All tool handlers delegate to existing modules (`tools/compose_packet.py`, `tools/lint_packet.py`, `app/registry.py`) — no logic duplication.
+- Tool outputs match HTTP endpoint outputs for the golden manifest (parity verified in tests).
+- Entry point: `python -m app.mcp_server`.
+
+## Stage-05.2 Agent Permissions Enforcement
+- `check_action_tool` resolves a registered packet and returns `{allowed, reason}` for a proposed action.
+- Reasons: `permitted`, `not_in_allowed_actions`, `unknown_packet`.
+
+## Stage-05 Dependencies
+- `mcp==1.27.0` added to `requirements.txt`.
+- FastAPI upgraded to 0.136.0, Uvicorn to 0.45.0 for starlette 1.0 compatibility.
+
+## Stage-05 Completion
+All Stage-05 substages (05.1–05.2) are complete. Test count: 48. Ready to proceed to Stage-06 (UI).

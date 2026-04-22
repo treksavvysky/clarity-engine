@@ -80,7 +80,7 @@ Tools and schema may be extended with additive changes:
 - **No database, auth, or outbound calls**: Persistence is filesystem-only under `packets/registry/<sha>/` (Stage-03+). Compose and lint endpoints remain side-effect-free.
 - **Deterministic outputs**: Same manifest input must produce identical outputs
 - **No network dependencies**: CI and tests must work offline
-- **Minimal dependencies**: Only FastAPI + Uvicorn + pytest are approved
+- **Minimal dependencies**: FastAPI, Uvicorn, pytest, and the `mcp` SDK (Stage-05+) are approved. New deps require a stage-mission note.
 
 ## Workflow
 
