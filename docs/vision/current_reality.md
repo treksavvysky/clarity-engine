@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-05 Complete
+# Current Reality (Facts Only) — Stage-06 Complete (All Stages Shipped)
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-02:
@@ -124,4 +124,23 @@ All Stage-04 substages (04.1–04.2) are complete.
 - FastAPI upgraded to 0.136.0, Uvicorn to 0.45.0 for starlette 1.0 compatibility.
 
 ## Stage-05 Completion
-All Stage-05 substages (05.1–05.2) are complete. Test count: 48. Ready to proceed to Stage-06 (UI).
+All Stage-05 substages (05.1–05.2) are complete.
+
+## Stage-06.1 Packet Browser UI
+- `GET /` serves `ui/index.html`; `/ui/*` mounted as static assets.
+- Browser tab lists packets from `GET /packets` and shows manifest + markdown detail.
+- No Node/npm toolchain; single static HTML file.
+
+## Stage-06.2 Diff Viewer UI
+- Diff tab accepts two sides, each either a 64-char sha or an inline JSON manifest.
+- Calls `POST /packets/diff`; renders added/removed/changed in color-coded sections.
+
+## Stage-06.3 Manifest Editor UI
+- Editor tab has a JSON textarea with Lint / Compose / Register / Enqueue buttons.
+- Includes a "Load example" helper; refreshes the Browser list after Register/Enqueue.
+
+## Stage-06 Completion
+All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/React frontend remains the architectural aspiration; `ui/index.html` is the concrete Stage-06 deliverable and can be replaced without backend changes.
+
+## Project State
+All documented stages (01–06) are shipped. The service exposes HTTP, MCP, and browser access to the same deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.

@@ -7,5 +7,9 @@ Long-range intent and staged plans live here. Key references:
 - `STAGE-01-MISSION.md` — constraints and objectives for exposing existing packet logic via FastAPI.
 - `STAGE-01-SUMMARY.md` — summary checkpoint to consult before working on Stage-01 substages.
 - `STAGE-01-CONSTRAINTS.md` — Universal constraints for all Stage-01 substages.
+- `STAGE-03-MISSION.md` — Registry & Packet Operations (shipped).
+- `STAGE-04-MISSION.md` — JCT Integration (shipped).
+- `STAGE-05-MISSION.md` — MCP Server (shipped).
+- `STAGE-06-MISSION.md` — UI (shipped).
 
 Keep these documents synchronized with the active stage and update them as stages are frozen or advanced.

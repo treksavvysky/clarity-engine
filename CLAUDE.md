@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Clarity Engine provides tools to compose, lint, and emit **Context Packets** — standardized, testable prompts for human–AI and agentic workflows. The project ensures work stays aligned and auditable by producing deterministic, schema-validated packet artifacts.
 
-**Current Stage:** Stage-02 complete — Schema expanded with risk flags, allowed actions, and evidence requirements. Linter includes ambiguity detection. OpenAPI enabled for GPT Actions.
+**Current Stage:** All documented stages (01–06) shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, and a static browser UI are all in place. See `docs/vision/current_reality.md` for the full inventory.
 
 ## Commands
 
