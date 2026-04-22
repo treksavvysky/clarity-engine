@@ -1,26 +1,24 @@
-# Clarity Engine Architecture (Planned)
+# Clarity Engine Architecture
+
+> Stages 01–06 are shipped. Sections below describe the architecture as it exists today; the roadmap further down records the historical staging plan. See `docs/vision/current_reality.md` for the facts-only inventory.
 
 ## Overview
-The future architecture centers on a contract-driven pipeline that turns missions into reliable Context Packets and exposes them through agent-friendly interfaces.
+Clarity Engine is a contract-driven pipeline that turns missions into reliable Context Packets and exposes them through HTTP, MCP, and browser interfaces.
 
-## Planned Components
-- **Packet toolchain (CLI + services):** Deterministic compose and lint flows that read the shared template and `pcp_lite.schema.json`, producing `packet.md` and normalized manifests by content hash.
-- **Context packet registry:** A hashed store under `packets/` that keeps packet markdown and manifests aligned for reproducibility and audit.
-- **Backend runtime (FastAPI + MCP server):**
-  - FastAPI endpoints to serve packet metadata and retrieval by hash.
-  - MCP server surfaces packet composition/linting actions to connected agents.
-  - Pydantic models enforce schema compatibility across services.
-- **Agentic workflow ties (JCT and peers):** Packets are structured so orchestrators can compose tool calls, enforce constraints, and log decisions without rehydrating full project histories.
-- **UI (Next.js-style):** A lightweight React/Next.js front layer for browsing packets, comparing versions, and previewing manifests.
+## Components (Shipped)
+- **Packet toolchain (CLI):** `tools/compose_packet.py` and `tools/lint_packet.py` produce `packet.md`, normalized manifests, and `context_sha` deterministically from `pcp_lite.schema.json`.
+- **Content-addressed registry:** `app/registry.py` writes `packets/registry/<sha>/{manifest.json,packet.md}` (Stage-03). Overridable via `CLARITY_REGISTRY_ROOT`. Idempotent, append-only at the API surface.
+- **Backend runtime (FastAPI):** `app/main.py` serves `/healthz`, `/openapi.json` (with `?server=` injection), `/packets/compose`, `/packets/lint`, `/packets/register`, `/packets/{sha}`, `/packets/{sha}/ancestors`, `/packets`, `/packets/diff`, `/packets/enqueue`, and mounts the static UI at `/` and `/ui/*`. Packet validation uses JSON Schema (not Pydantic) via `tools/lint_packet.py` so CLI and HTTP share the same rules.
+- **MCP server:** `app/mcp_server.py` exposes compose, lint, register, get, list, diff, enqueue, and `check_action` as MCP tools over stdio (`python -m app.mcp_server`). All tools delegate to the same modules the HTTP endpoints use.
+- **Agentic workflow ties (JCT):** `POST /packets/enqueue` returns a JCT-ready envelope with `task_id === context_sha` and the optional `callback_url` transport field (Clarity Engine never calls it).
+- **UI:** `ui/index.html` is a single static page with Browser / Diff / Editor tabs, served by FastAPI. No Node toolchain. A Next.js replacement remains the long-term aspiration and can swap in without backend changes.
 
 ## Operating Model
-1. Incoming missions are normalized into manifests that satisfy `pcp_lite.schema.json`.
-2. Compose/lint services generate markdown packets and validated manifests, computing a `context_sha` for registry lookups.
-3. The MCP server exposes these operations to agents, while FastAPI endpoints provide human-readable access.
-4. UI fetches packet metadata and renders packet content for comparison, review, and sharing.
-
-## Stage 0 Note
-This architecture is aspirational. Stage 0 only ships documentation, schema, and templates—no FastAPI services, MCP server, registry, or UI are implemented yet.
+1. Incoming manifests are validated against `pcp_lite.schema.json`.
+2. Compose normalizes the manifest and computes a `context_sha` over the canonical JSON.
+3. Register (or enqueue) persists `manifest.json` + `packet.md` under `packets/registry/<sha>/` — idempotent on re-register.
+4. Agents consume packets over HTTP or MCP; `check_action` gates proposed actions against `allowed_actions`.
+5. The UI reads and writes via the same HTTP endpoints.
 
 ---
 
