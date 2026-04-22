@@ -39,15 +39,19 @@ def compute_context_sha(normalized_manifest: str) -> str:
 
 
 def render_header_lines(manifest: dict) -> list[str]:
-    return [
+    lines = [
         "# Context Packet Template (PCP-lite)",
         "",
         f"- **Project:** {manifest.get('project', '')}",
         f"- **Stage:** {manifest.get('stage', '')}",
         f"- **Substage:** {manifest.get('substage', '')}",
         f"- **Version:** {manifest.get('version', '')}",
-        "",
     ]
+    parent_sha = manifest.get("parent_sha")
+    if parent_sha:
+        lines.append(f"- **Parent SHA:** {parent_sha}")
+    lines.append("")
+    return lines
 
 
 def render_list_section(title: str, items: list | None) -> list[str]:

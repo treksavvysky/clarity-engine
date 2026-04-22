@@ -150,6 +150,11 @@
         ]
       },
       "description": "Optional list of evidence types the agent must return to prove work completion."
+    },
+    "parent_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Optional context_sha of the parent packet this one was derived from. Enables lineage tracking."
     }
   }
 }

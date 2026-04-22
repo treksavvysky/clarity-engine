@@ -134,6 +134,9 @@ def _validate_field_types(manifest: dict, properties: dict) -> list[str]:
                 continue
             if key in CRITICAL_FIELDS and not value.strip():
                 errors.append(f"Field '{label}' must be a non-empty string.")
+            pattern = prop.get("pattern")
+            if pattern and not re.fullmatch(pattern, value):
+                errors.append(f"Field '{label}' must match pattern {pattern}.")
         elif expected_type == "array":
             if not isinstance(value, list):
                 errors.append(f"Field '{label}' must be a list.")

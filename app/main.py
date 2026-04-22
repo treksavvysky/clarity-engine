@@ -171,6 +171,34 @@ def get_packet_endpoint(sha: str) -> dict[str, Any]:
     }
 
 
+@app.get(
+    "/packets/{sha}/ancestors",
+    tags=["packets"],
+    summary="Retrieve packet lineage via parent_sha",
+    description=(
+        "Walks the parent_sha chain starting from the given packet and returns the ancestor shas "
+        "in order from nearest parent to oldest ancestor. Stops at the first packet with no "
+        "parent_sha or whose parent is not in the registry."
+    ),
+)
+def get_ancestors_endpoint(sha: str) -> dict[str, Any]:
+    """Return the ancestor chain for a registered packet."""
+    record = registry.read(sha)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"Packet {sha} not found.")
+    ancestors: list[str] = []
+    seen = {sha}
+    current = record["manifest"].get("parent_sha")
+    while current and current not in seen:
+        seen.add(current)
+        ancestors.append(current)
+        parent_record = registry.read(current)
+        if parent_record is None:
+            break
+        current = parent_record["manifest"].get("parent_sha")
+    return {"context_sha": sha, "ancestors": ancestors}
+
+
 def _resolve_side(value: Any, side: str) -> dict:
     """Accept a sha string or inline manifest dict; return the manifest."""
     if isinstance(value, str):
