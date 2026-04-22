@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-02 Complete
+# Current Reality (Facts Only) — Stage-03 Complete
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-02:
@@ -74,4 +74,24 @@ All Stage-01 substages (01.1–01.5) are complete.
 - Defines proof-of-work agents must return to verify completion.
 
 ## Stage-02 Completion
-All Stage-02 substages (02.1–02.5) are complete. The project is ready to proceed to Stage-03 (Registry & Packet Operations).
+All Stage-02 substages (02.1–02.5) are complete.
+
+## Stage-03.1 Packet Registry
+- `app/registry.py` provides a filesystem-backed content-addressed store under `packets/registry/<sha>/` (overridable via `CLARITY_REGISTRY_ROOT`).
+- `POST /packets/register` composes and persists; idempotent (second call returns `registered: false`).
+- `GET /packets` lists `{context_sha, mission}` entries; `GET /packets/{sha}` returns stored manifest + markdown or 404.
+- Compose/lint endpoints remain side-effect-free.
+
+## Stage-03.2 Packet Diffing
+- `POST /packets/diff` accepts `left` and `right`, each either a `context_sha` string or an inline manifest object.
+- Returns `{added, removed, changed}` — only fields that differ; unchanged fields are omitted.
+- Unknown sha returns 404; missing sides return 400.
+
+## Stage-03.3 Packet Versioning
+- Optional `parent_sha` field added to schema (pattern `^[a-f0-9]{64}$`).
+- Linter honors string `pattern` constraints.
+- Compose renders a `Parent SHA:` line in the markdown header when present.
+- `GET /packets/{sha}/ancestors` walks the lineage chain and returns ancestors ordered nearest → oldest.
+
+## Stage-03 Completion
+All Stage-03 substages (03.1–03.3) are complete. Test count: 31. Ready to proceed to Stage-04 (JCT Integration).
