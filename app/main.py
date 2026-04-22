@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
+from app import registry
 from tools import compose_packet, lint_packet
 
 app = FastAPI(
@@ -109,3 +110,62 @@ def lint_packet_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
     errors = [i for i in issues if not i.startswith("[warning]")]
     warnings = [i for i in issues if i.startswith("[warning]")]
     return {"ok": not errors, "errors": errors, "warnings": warnings}
+
+
+@app.post(
+    "/packets/register",
+    tags=["packets"],
+    summary="Compose and persist a Context Packet",
+    description=(
+        "Composes the manifest and writes the resulting packet to the content-addressed "
+        "registry under packets/registry/<context_sha>/. Idempotent: a second call with "
+        "the same manifest returns registered=false and does not rewrite files."
+    ),
+)
+def register_packet_endpoint(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Compose and persist a packet. Returns context_sha and registered (bool)."""
+    if not isinstance(manifest, dict):
+        raise HTTPException(status_code=400, detail="Manifest must be a JSON object.")
+
+    normalized_manifest = compose_packet.normalize_manifest(manifest)
+    packet_md = compose_packet.render_packet_md(manifest) + "\n"
+    context_sha = compose_packet.compute_context_sha(normalized_manifest)
+
+    registered = registry.write(context_sha, normalized_manifest, packet_md)
+    return {"context_sha": context_sha, "registered": registered}
+
+
+@app.get(
+    "/packets",
+    tags=["packets"],
+    summary="List registered Context Packets",
+    description="Returns all packets currently in the registry with their context_sha and mission.",
+)
+def list_packets_endpoint() -> dict[str, Any]:
+    """Return all registered packets as {context_sha, mission} entries."""
+    entries = []
+    for sha in registry.list_shas():
+        record = registry.read(sha)
+        if record is None:
+            continue
+        mission = record["manifest"].get("mission", "")
+        entries.append({"context_sha": sha, "mission": mission})
+    return {"packets": entries}
+
+
+@app.get(
+    "/packets/{sha}",
+    tags=["packets"],
+    summary="Retrieve a registered Context Packet",
+    description="Returns the stored manifest and rendered markdown for the given context_sha.",
+)
+def get_packet_endpoint(sha: str) -> dict[str, Any]:
+    """Return a registered packet or 404 if sha is unknown."""
+    record = registry.read(sha)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"Packet {sha} not found.")
+    return {
+        "context_sha": sha,
+        "manifest": record["manifest"],
+        "packet_md": record["packet_md"],
+    }

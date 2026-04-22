@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Clarity Engine runtime registry (content-addressed packet store)
+packets/registry/
