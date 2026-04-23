@@ -96,6 +96,16 @@ python -m app.mcp_server
 # diff_packets_tool, enqueue_packet_tool, check_action_tool
 ```
 
+### Using the MCP server from Claude Code
+The repo ships a project-level `.mcp.json` that registers the Clarity Engine MCP server with Claude Code. On first use, Claude Code will ask you to approve it.
+
+Prerequisite: the venv must exist so the configured command (`.venv/bin/python -m app.mcp_server`) resolves.
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+Then open this repo in Claude Code and approve the server when prompted. The 8 tools become callable directly in-session.
+
 ### CLI tools
 ```bash
 python tools/compose_packet.py packets/examples/context_packet_example.json
