@@ -1,5 +1,5 @@
-# UI Directory (Stage 0)
+# UI Directory
 
-Reserved for future frontend implementation (e.g., Vite/React). Stage 0 prohibits bundling or runtime UI code.
+`ui/index.html` is the shipped Stage-06 browser UI. FastAPI serves it at `/` and mounts `/ui/*` for static assets.
 
-Document UI plans here; do not add compiled assets or build pipelines yet.
+Keep the UI build-free unless a new stage plan explicitly introduces a frontend toolchain.
