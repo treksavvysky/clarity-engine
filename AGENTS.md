@@ -14,30 +14,30 @@ Codex’s mission in this repo:
 
 > Implement and maintain small, incremental changes that improve the ability to generate clear, consistent, and testable Context Packets—without breaking existing behavior or contracts.
 
-see docs/vision/mission.md for extended an extended mission statement
-see docs/vision/architecture.md for Architecture (Planned)
+See `docs/vision/mission.md` for the extended mission statement.
+See `docs/vision/architecture.md` for the shipped architecture and historical roadmap.
 ---
 
 ## 2. Scope and Boundaries
 
-### Stage-01 (Complete)
-During Stage-01, Stage-0 artifacts were frozen to ensure safe introduction of the FastAPI layer. Stage-01 is now complete.
+### Current State
+All documented stages (01-06) are shipped. The repo now includes the packet CLI tools, FastAPI service, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, MCP server, and static browser UI. `docs/vision/current_reality.md` is the facts-only source of truth.
 
-### Stage-02+ Policy
+### Evolution Policy
 - **Additive changes allowed:** Tools (`lint_packet.py`, `compose_packet.py`) may be extended with new functionality.
 - **No breaking changes:** Existing validation semantics and deterministic outputs must be preserved.
 - **Schema evolution:** `pcp_lite.schema.json` may add new optional fields; required fields need migration plan.
 - **Template sync:** `CONTEXT_PACKET_TEMPLATE.md` must stay aligned with schema changes.
+- **Shared behavior:** HTTP endpoints, MCP tools, and CLI commands should continue to delegate to the same core modules so behavior does not drift.
 
-### Current Allowances (Stage-02)
-- Extend linter with new warnings (ambiguity detection, risk flags).
-- Add new optional fields to schema.
-- Enhance OpenAPI descriptions for GPT Action discovery.
-- Runtime remains stateless: no authentication, persistence, or outbound calls.
+### Current Allowances
+- Add new lint warnings, optional schema fields, render sections, HTTP endpoints, MCP tools, or UI affordances when explicitly scoped.
+- Improve registry, diff, enqueue, and permission-check behavior without changing deterministic hashes for unchanged manifests.
+- Replace the static UI with a richer frontend only under a new explicit stage plan; the current shipped UI is `ui/index.html`.
 
 ### Still out of scope
-- MCP servers, UI builds, orchestration, or secret handling.
-- Network-dependent behavior and persistence layers remain prohibited until explicitly scoped.
+- Authentication, secrets handling, databases, outbound network behavior, or destructive workflows unless explicitly scoped in a new packet or stage plan.
+- Runtime dependencies that require network access in CI or make offline tests impossible.
 
 ---
 
@@ -126,10 +126,9 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
      - Print useful diagnostics
 
 8. `packets/` directory
-   - Storage for generated packets (optional in Stage 0 but reserved):
-     - `packets/<context_sha>.md`
-     - `packets/<context_sha>.json`
-   - Codex must respect this structure when adding examples or fixtures.
+   - Contains committed examples under `packets/examples/`.
+   - Runtime registry output lives under `packets/registry/<context_sha>/` and is ignored by git.
+   - Codex must not commit runtime registry artifacts unless explicitly requested.
 
 ---
 
@@ -137,10 +136,10 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
 
  9. `.github/workflows/ci.yml`
    - Must run, at minimum:
-     - Tests (if present)
-     - Linters/formatters (if configured)
+     - Tests
      - Packet linter on any committed manifests or templates
-     - Stage-01 runtime import checks (without starting network services)
+     - FastAPI import checks without starting network services
+     - Example packet compose checks
    - Update as new tools or tests are added.
 
 ---
@@ -167,16 +166,17 @@ When Codex makes changes:
        - Tools (compose/lint)
        - README and/or AGENTS if behavior or expectations change.
 
-## Stage-01 Reference (while Stage 0 is frozen)
+## Stage Reference
 
-- `docs/vision/STAGE-01-SUMMARY.md` — checkpoint summary for the transition from Stage 0 to Stage-01.
-- `docs/vision/STAGE-01-MISSION.md` — gates, constraints, and substages for Stage-01.
+- `docs/vision/current_reality.md` — facts-only inventory of the shipped system.
+- `docs/vision/architecture.md` — shipped architecture and historical roadmap.
+- `docs/vision/STAGE-0{1,2,3,4,5,6}-MISSION.md` — per-stage plans and acceptance gates.
 
-When working on Stage-01 or any Stage-01 substages, reference both files above to align on constraints and acceptance before making changes.
+When working on stage-scoped changes, reference the relevant mission file and update `current_reality.md` when the system moves forward.
 
 4. **Respect constraints**
-   - No new dependencies without clear purpose (FastAPI + Uvicorn are approved for Stage-01.x runtime work).
-   - No network or secrets in Stage 0 or Stage-01.
+   - No new dependencies without clear purpose and a stage-mission note.
+   - No network or secrets in CI or tests.
    - Do not remove existing working functionality without replacement.
 
 ---
@@ -202,14 +202,19 @@ For any non-trivial change, Codex should:
    - Ensure tests and lint pass.
    - Ensure packet linter works on any example manifests/templates.
 
+6. **Commit completed work**
+   - After completing a task and running the relevant checks, create a git commit without waiting for a separate prompt.
+   - Include only intentional source, docs, tests, and contract changes.
+   - Leave generated runtime data under `packets/registry/` uncommitted unless explicitly requested.
+
 ---
 
-## 6. Non-Goals for Codex (Stage 0)
+## 6. Non-Goals for Codex
 
 Codex should **not**:
 
-- Implement MCP or FastAPI endpoints unless explicitly requested.
-- Implement UI features or frontend code unless explicitly requested.
-- Integrate with external systems (JCT, sandboxes, etc.) at this stage.
+- Add authentication, databases, background workers, or outbound callbacks unless explicitly requested.
+- Replace the static UI or introduce a build toolchain without a new scoped plan.
+- Commit generated registry data from `packets/registry/` unless explicitly requested.
 
-By following this guide, Codex helps keep **clarity-engine** simple, reliable, and ready for later stages—where orchestration and integration will build on these core artifacts.
+By following this guide, Codex helps keep **clarity-engine** simple, reliable, and auditable as new packet capabilities are added.

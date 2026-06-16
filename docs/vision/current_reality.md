@@ -1,10 +1,10 @@
 # Current Reality (Facts Only) — Stage-06 Complete (All Stages Shipped)
 
 ## Repository / Contract Baseline
-- Core artifacts have evolved through Stage-02:
+- Core artifacts have evolved through Stage-06:
   - `CONTEXT_PACKET_TEMPLATE.md` — Updated with risk_flags, allowed_actions, evidence_requirements sections
-  - `pcp_lite.schema.json` — Extended with Stage-02 optional fields
-  - `tools/compose_packet.py` — Renders all schema fields including Stage-02 additions
+  - `pcp_lite.schema.json` — Extended with optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
+  - `tools/compose_packet.py` — Renders all schema fields including the shipped optional fields
   - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
 
 ## API Implementation State
@@ -13,8 +13,12 @@
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
   - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
   - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
+  - `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, and `GET /packets/{sha}/ancestors` for registry and lineage operations.
+  - `POST /packets/diff` for manifest or registered-packet comparison.
+  - `POST /packets/enqueue` for deterministic JCT-ready task envelopes.
+  - `GET /` and `/ui/*` for the static browser UI.
 - OpenAPI docs available at `/docs` (Swagger UI).
-- 15 tests cover endpoints, CLI tools, ambiguity detection, and Stage-02 fields.
+- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, and UI serving. Current Stage-06 completion test count: 50.
 
 ## Dependency / Runtime Reality
 - A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
@@ -23,17 +27,20 @@
 ## Verified Execution (Observed)
 - The service starts successfully via `uvicorn app.main:app --reload`.
 - A request to `/healthz` returns `{ "status": "ok" }` (HTTP 200).
-- `POST /packets/compose` returns deterministic `packet_md`, normalized `manifest`, and `context_sha` using Stage-0 compose functions for the example manifest.
-- `POST /packets/lint` returns `{ "ok": true, "issues": [] }` for the example manifest and reports missing required fields when omitted.
-- `pytest -q` runs the minimal endpoint tests in-process with FastAPI's `TestClient`.
+- `POST /packets/compose` returns deterministic `packet_md`, normalized `manifest`, and `context_sha` for the example manifest.
+- `POST /packets/lint` returns `{ "ok": true, "errors": [], "warnings": [] }` for the example manifest and reports missing required fields when omitted.
+- `pytest -q` runs the endpoint, CLI, MCP, registry, diff, lineage, enqueue, and UI tests in-process.
 
 ## CI / Tests
-- CI continues to run Python 3.12 and the Stage-0 packet checks.
+- CI runs Python 3.12 and the packet checks.
 - CI includes an import smoke check to ensure `app.main` loads without side effects.
-- CI runs `pytest -q` for the minimal FastAPI endpoint coverage alongside Stage-0 packet tooling checks.
+- CI runs `pytest -q`, lints the example manifest, and composes the example manifest.
 
 ## Service Properties
-- The service remains stateless: no persistence, authentication, outbound network calls, or UI components are present.
+- Persistence is filesystem-only under `packets/registry/<sha>/`, with no database.
+- Compose and lint endpoints are side-effect-free; register and enqueue write to the registry.
+- No authentication, secrets handling, or outbound network calls are present.
+- The browser UI is a static `ui/index.html` file mounted by FastAPI.
 
 ## Stage-01.5 Documentation State
 - `CLAUDE.md` added at repository root with project guidance for Claude Code (commands, architecture, constraints).

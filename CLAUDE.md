@@ -45,27 +45,36 @@ The project provides the same functionality via two interfaces:
    - `GET /docs` — Swagger UI
    - `POST /packets/compose` — returns `{ packet_md, manifest, context_sha }`
    - `POST /packets/lint` — returns `{ ok, errors, warnings }` (warnings don't fail validation)
+   - `POST /packets/register` — persists a composed packet in the filesystem registry
+   - `GET /packets`, `GET /packets/{sha}`, `GET /packets/{sha}/ancestors` — registry listing, retrieval, and lineage
+   - `POST /packets/diff` — compares two manifests or registered packet shas
+   - `POST /packets/enqueue` — returns a deterministic JCT-ready task envelope
    - `GET /healthz` — returns `{ status: "ok" }`
+   - `GET /` and `/ui/*` — serve the static browser UI
 
 The API endpoints import and call functions from `tools/` directly to prevent semantic drift.
 
+3. **MCP Server** (`app/mcp_server.py`): stdio server exposing compose, lint, register, get, list, diff, enqueue, and `check_action` tools.
+
 ### Core Contract
 
-- **`pcp_lite.schema.json`**: JSON Schema with required fields + optional Stage-02 fields (risk_flags, allowed_actions, evidence_requirements)
+- **`pcp_lite.schema.json`**: JSON Schema with required fields + optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
 - **`CONTEXT_PACKET_TEMPLATE.md`**: Human-readable paste-ready template aligned with schema
 - **`AGENTS.md`**: Operating guide defining scope and change rules
 
-### Schema Fields (Stage-02)
+### Optional Schema Fields
 
 | Field | Type | Purpose |
 |-------|------|---------|
 | `risk_flags` | enum[] | `high_blast_radius`, `needs_human_signoff`, `missing_info`, `network_required`, `destructive_action`, `secrets_involved`, `external_dependency` |
 | `allowed_actions` | enum[] | `git_read`, `git_write`, `filesystem_read`, `filesystem_write`, `http_read`, `http_write`, `docker`, `shell_exec`, `secrets_read`, `database_read`, `database_write` |
 | `evidence_requirements` | enum[] | `pr_link`, `commit_sha`, `test_output`, `diff`, `logs`, `screenshot`, `artifact_path`, `api_response` |
+| `parent_sha` | string | Links a packet to a registered ancestor for lineage |
+| `callback_url` | string | Transport-only callback URL for downstream orchestrators; Clarity Engine never calls it |
 
 ### Test Structure
 
-Tests use FastAPI's `TestClient` via the `client` fixture in `conftest.py`. The `example_manifest` fixture loads the golden example from `packets/examples/context_packet_example.json`. 15 tests cover endpoints, CLI, ambiguity detection, and Stage-02 fields.
+Tests use FastAPI's `TestClient` via the `client` fixture in `conftest.py`. The `example_manifest` fixture loads the golden example from `packets/examples/context_packet_example.json`. Coverage spans CLI compose/lint behavior, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, and the static UI mount.
 
 ## Evolution Policy
 
