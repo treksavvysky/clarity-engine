@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Clarity Engine provides tools to compose, lint, and emit **Context Packets** — standardized, testable prompts for human–AI and agentic workflows. The project ensures work stays aligned and auditable by producing deterministic, schema-validated packet artifacts.
 
-**Current Stage:** All documented stages (01–06) shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, and a static browser UI are all in place. See `docs/vision/current_reality.md` for the full inventory.
+**Current Stage:** All documented stages through Stage-07.1 shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, static browser UI, and raw-intent draft endpoint are all in place. See `docs/vision/current_reality.md` for the full inventory.
 
 ## Commands
 
@@ -49,6 +49,7 @@ The project provides the same functionality via two interfaces:
    - `GET /packets`, `GET /packets/{sha}`, `GET /packets/{sha}/ancestors` — registry listing, retrieval, and lineage
    - `POST /packets/diff` — compares two manifests or registered packet shas
    - `POST /packets/enqueue` — returns a deterministic JCT-ready task envelope
+   - `POST /intents/draft` — returns a deterministic draft PCP-lite manifest from one raw intent without registry writes
    - `GET /healthz` — returns `{ status: "ok" }`
    - `GET /` and `/ui/*` — serve the static browser UI
 
@@ -64,7 +65,7 @@ The API endpoints import and call functions from `tools/` directly to prevent se
 
 ### Raw Intent Boundary
 
-Clarity Engine currently accepts structured PCP-lite manifests, not free-form raw intent. Raw intent such as `I should work on code-server.` must first be clarified into a manifest by a human or agent, then passed through lint/compose/register/enqueue. A future additive intake contract may accept `{ raw_intent, context, constraints, route }` and return a draft mission packet.
+Clarity Engine accepts structured PCP-lite manifests for packet operations and exposes `POST /intents/draft` for side-effect-free raw-intent drafting. Raw intent such as `I should work on code-server.` can be submitted as `{ raw_intent, context, constraints, route }`; the endpoint returns a draft manifest plus lint results and preview markdown, but does not register or enqueue the draft.
 
 ### Optional Schema Fields
 

@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-06 Complete (All Stages Shipped)
+# Current Reality (Facts Only) — Stage-07.1 Complete
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -11,6 +11,7 @@
 - A FastAPI application at `app/main.py` (v0.2.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
+  - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
   - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
   - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
   - `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, and `GET /packets/{sha}/ancestors` for registry and lineage operations.
@@ -18,7 +19,7 @@
   - `POST /packets/enqueue` for deterministic JCT-ready task envelopes.
   - `GET /` and `/ui/*` for the static browser UI.
 - OpenAPI docs available at `/docs` (Swagger UI).
-- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, and UI serving. Current Stage-06 completion test count: 50.
+- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, UI serving, and raw-intent drafting.
 
 ## Dependency / Runtime Reality
 - A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
@@ -149,8 +150,14 @@ All Stage-05 substages (05.1–05.2) are complete.
 ## Stage-06 Completion
 All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/React frontend remains the architectural aspiration; `ui/index.html` is the concrete Stage-06 deliverable and can be replaced without backend changes.
 
+## Stage-07.1 Raw Intent Drafting
+- `POST /intents/draft` accepts a JSON object with required `raw_intent` and optional `context`, `constraints`, and `route` string arrays.
+- The endpoint deterministically returns `{ ok, errors, warnings, manifest, packet_md, context_sha, registered }`.
+- `registered` is always `false`; the endpoint is side-effect-free and does not write to `packets/registry/`.
+- The draft manifest is linted before return, and callers can send the returned manifest to `/packets/register` after review.
+
 ## Project State
-All documented stages (01–06) are shipped. The service exposes HTTP, MCP, and browser access to the same deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
+All documented stages through Stage-07.1 are shipped. The service exposes HTTP, MCP, browser access, and raw-intent drafting for deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
 
 ## Raw Intent Intake Boundary
-Clarity Engine currently accepts structured Project Context Protocol lite (PCP-lite) manifests. Raw human intent is clarified into a manifest by a human or agent before lint, compose, register, or enqueue. A future additive stage may introduce an explicit raw-intent intake contract such as `{ raw_intent, context, constraints, route }` that returns a draft mission packet.
+Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manifests for packet operations. `POST /intents/draft` is the explicit raw-intent intake boundary: it converts `{ raw_intent, context, constraints, route }` into a draft mission packet for review, lint, compose, register, or enqueue.

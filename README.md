@@ -3,7 +3,7 @@
 Clarity Engine is intent and context infrastructure: it standardizes how we generate clear, testable Context Packets for human–AI and agentic workflows so work stays aligned and auditable.
 
 ## Project State
-All documented stages (01–06) are shipped:
+All documented stages through Stage-07.1 are shipped:
 
 | Stage | What ships |
 |-------|------------|
@@ -13,6 +13,7 @@ All documented stages (01–06) are shipped:
 | 04 | JCT-compatible `POST /packets/enqueue`; optional `callback_url` transport field |
 | 05 | MCP server (`python -m app.mcp_server`) exposing compose/lint/register/get/list/diff/enqueue/check_action |
 | 06 | Static browser UI at `/` with Browser / Diff / Editor tabs |
+| 07 | Raw-intent draft intake (`POST /intents/draft`) returning reviewable PCP-lite manifests without registry writes |
 
 See `docs/vision/current_reality.md` for the full fact sheet.
 
@@ -113,9 +114,20 @@ python tools/lint_packet.py packets/examples/context_packet_example.json
 ```
 
 ## Raw Intent Intake
-Today, Clarity Engine accepts structured PCP-lite manifests. Raw human intent is clarified by a human or agent before calling `/packets/lint`, `/packets/compose`, `/packets/register`, or `/packets/enqueue`.
+Clarity Engine can draft a PCP-lite manifest from one raw human intent without registering or enqueueing it:
 
-A future additive intake contract can make that boundary explicit:
+```bash
+curl -s -X POST http://127.0.0.1:8000/intents/draft \
+  -H "Content-Type: application/json" \
+  -d '{
+    "raw_intent": "I should work on code-server.",
+    "context": ["code-server is part of the active dev environment."],
+    "constraints": ["Do not change code-server configuration yet."],
+    "route": ["SMI", "Clarity Engine", "Infrastructure Registry"]
+  }'
+```
+
+The intake contract is:
 ```json
 {
   "raw_intent": "I should work on code-server.",
@@ -125,7 +137,7 @@ A future additive intake contract can make that boundary explicit:
 }
 ```
 
-That intake would produce a draft PCP-lite mission packet for review, linting, and registration.
+The response includes `{ ok, errors, warnings, manifest, packet_md, context_sha, registered }`. `registered` is always `false`; send the returned manifest to `/packets/register` only after review.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
