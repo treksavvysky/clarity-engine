@@ -151,3 +151,6 @@ All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/Rea
 
 ## Project State
 All documented stages (01–06) are shipped. The service exposes HTTP, MCP, and browser access to the same deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
+
+## Raw Intent Intake Boundary
+Clarity Engine currently accepts structured Project Context Protocol lite (PCP-lite) manifests. Raw human intent is clarified into a manifest by a human or agent before lint, compose, register, or enqueue. A future additive stage may introduce an explicit raw-intent intake contract such as `{ raw_intent, context, constraints, route }` that returns a draft mission packet.

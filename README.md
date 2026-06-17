@@ -20,7 +20,7 @@ See `docs/vision/current_reality.md` for the full fact sheet.
 These files define how the project operates and must stay in sync.
 - `AGENTS.md` — operating guide and constraints for agents contributing to the repo.
 - `CONTEXT_PACKET_TEMPLATE.md` — paste-ready Context Packet template aligned with the schema.
-- `pcp_lite.schema.json` — machine-readable contract for packet manifests.
+- `pcp_lite.schema.json` — machine-readable Project Context Protocol lite (PCP-lite) contract for packet manifests.
 - `packets/examples/context_packet_example.json` — minimal manifest example conforming to the PCP-lite schema.
 - `CLAUDE.md` — project guidance for Claude Code and the commit-per-substage workflow.
 - `.github/workflows/ci.yml` — CI pipeline covering tests, packet checks, and import verification.
@@ -111,6 +111,21 @@ Then open this repo in Claude Code and approve the server when prompted. The 8 t
 python tools/compose_packet.py packets/examples/context_packet_example.json
 python tools/lint_packet.py packets/examples/context_packet_example.json
 ```
+
+## Raw Intent Intake
+Today, Clarity Engine accepts structured PCP-lite manifests. Raw human intent is clarified by a human or agent before calling `/packets/lint`, `/packets/compose`, `/packets/register`, or `/packets/enqueue`.
+
+A future additive intake contract can make that boundary explicit:
+```json
+{
+  "raw_intent": "I should work on code-server.",
+  "context": ["optional known facts"],
+  "constraints": ["optional boundaries"],
+  "route": ["SMI", "Clarity Engine", "Infrastructure Registry"]
+}
+```
+
+That intake would produce a draft PCP-lite mission packet for review, linting, and registration.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.

@@ -58,9 +58,13 @@ The API endpoints import and call functions from `tools/` directly to prevent se
 
 ### Core Contract
 
-- **`pcp_lite.schema.json`**: JSON Schema with required fields + optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
+- **`pcp_lite.schema.json`**: Project Context Protocol lite (PCP-lite) JSON Schema with required fields + optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
 - **`CONTEXT_PACKET_TEMPLATE.md`**: Human-readable paste-ready template aligned with schema
 - **`AGENTS.md`**: Operating guide defining scope and change rules
+
+### Raw Intent Boundary
+
+Clarity Engine currently accepts structured PCP-lite manifests, not free-form raw intent. Raw intent such as `I should work on code-server.` must first be clarified into a manifest by a human or agent, then passed through lint/compose/register/enqueue. A future additive intake contract may accept `{ raw_intent, context, constraints, route }` and return a draft mission packet.
 
 ### Optional Schema Fields
 

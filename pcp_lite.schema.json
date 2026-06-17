@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "PCP-lite Context Packet Manifest",
-  "description": "Schema for machine-readable Context Packets used by Clarity Engine (Stage 0).",
+  "title": "Project Context Protocol lite (PCP-lite) Context Packet Manifest",
+  "description": "Schema for machine-readable Context Packets used by Clarity Engine. PCP-lite is the small Project Context Protocol contract for executable mission packets.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -28,7 +28,7 @@
     },
     "version": {
       "type": "string",
-      "description": "Optional version of the PCP-lite schema/template used to craft the packet."
+      "description": "Optional version of the Project Context Protocol lite schema/template used to craft the packet."
     },
     "mission": {
       "type": "string",
