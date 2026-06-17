@@ -3,7 +3,7 @@
 Clarity Engine is intent and context infrastructure: it standardizes how we generate clear, testable Context Packets for human–AI and agentic workflows so work stays aligned and auditable.
 
 ## Project State
-All documented stages through Stage-07.1 are shipped:
+All documented stages through Stage-07.2 are shipped:
 
 | Stage | What ships |
 |-------|------------|
@@ -12,7 +12,7 @@ All documented stages through Stage-07.1 are shipped:
 | 03 | Content-addressed filesystem registry; `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, `POST /packets/diff`, `GET /packets/{sha}/ancestors` |
 | 04 | JCT-compatible `POST /packets/enqueue`; optional `callback_url` transport field |
 | 05 | MCP server (`python -m app.mcp_server`) exposing compose/lint/register/get/list/diff/enqueue/check_action |
-| 06 | Static browser UI at `/` with Browser / Diff / Editor tabs |
+| 06 | Static browser UI at `/` with Browser / Intent / Diff / Editor tabs |
 | 07 | Raw-intent draft intake (`POST /intents/draft`) returning reviewable PCP-lite manifests without registry writes |
 
 See `docs/vision/current_reality.md` for the full fact sheet.
@@ -138,6 +138,8 @@ The intake contract is:
 ```
 
 The response includes `{ ok, errors, warnings, manifest, packet_md, context_sha, registered }`. `registered` is always `false`; send the returned manifest to `/packets/register` only after review.
+
+The browser UI also exposes this flow in the **Intent** tab: write raw intent, add context/constraints/route, draft the mission packet, then register the reviewed draft.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.

@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-07.1 Complete
+# Current Reality (Facts Only) — Stage-07.2 Complete
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -19,7 +19,7 @@
   - `POST /packets/enqueue` for deterministic JCT-ready task envelopes.
   - `GET /` and `/ui/*` for the static browser UI.
 - OpenAPI docs available at `/docs` (Swagger UI).
-- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, UI serving, and raw-intent drafting.
+- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, UI serving, raw-intent drafting, and raw-intent UI controls.
 
 ## Dependency / Runtime Reality
 - A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
@@ -156,8 +156,13 @@ All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/Rea
 - `registered` is always `false`; the endpoint is side-effect-free and does not write to `packets/registry/`.
 - The draft manifest is linted before return, and callers can send the returned manifest to `/packets/register` after review.
 
+## Stage-07.2 Raw Intent UI
+- The static browser UI includes an Intent tab.
+- The Intent tab accepts raw intent, context bullets, constraint bullets, and a route list.
+- It calls `POST /intents/draft`, renders lint status plus readable packet sections, and can register the reviewed draft through `POST /packets/register`.
+
 ## Project State
-All documented stages through Stage-07.1 are shipped. The service exposes HTTP, MCP, browser access, and raw-intent drafting for deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
+All documented stages through Stage-07.2 are shipped. The service exposes HTTP, MCP, browser access, raw-intent drafting, and a raw-intent UI for deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
 
 ## Raw Intent Intake Boundary
 Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manifests for packet operations. `POST /intents/draft` is the explicit raw-intent intake boundary: it converts `{ raw_intent, context, constraints, route }` into a draft mission packet for review, lint, compose, register, or enqueue.

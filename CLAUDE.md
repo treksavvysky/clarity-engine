@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Clarity Engine provides tools to compose, lint, and emit **Context Packets** — standardized, testable prompts for human–AI and agentic workflows. The project ensures work stays aligned and auditable by producing deterministic, schema-validated packet artifacts.
 
-**Current Stage:** All documented stages through Stage-07.1 shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, static browser UI, and raw-intent draft endpoint are all in place. See `docs/vision/current_reality.md` for the full inventory.
+**Current Stage:** All documented stages through Stage-07.2 shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, static browser UI, raw-intent draft endpoint, and Intent UI tab are all in place. See `docs/vision/current_reality.md` for the full inventory.
 
 ## Commands
 
@@ -51,7 +51,7 @@ The project provides the same functionality via two interfaces:
    - `POST /packets/enqueue` — returns a deterministic JCT-ready task envelope
    - `POST /intents/draft` — returns a deterministic draft PCP-lite manifest from one raw intent without registry writes
    - `GET /healthz` — returns `{ status: "ok" }`
-   - `GET /` and `/ui/*` — serve the static browser UI
+   - `GET /` and `/ui/*` — serve the static browser UI with Browser / Intent / Diff / Editor tabs
 
 The API endpoints import and call functions from `tools/` directly to prevent semantic drift.
 

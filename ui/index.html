@@ -38,6 +38,8 @@
   .sha { color: var(--muted); font-size: 11px; }
   .mission { font-size: 13px; margin-top: 4px; }
   pre { background: var(--panel-2); border: 1px solid var(--border); padding: 12px; border-radius: 4px; overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  textarea, input { width: 100%; background: var(--panel-2); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: inherit; font-size: 12px; line-height: 1.5; }
+  label { display: block; color: var(--muted); font-size: 12px; margin: 12px 0 6px; }
   button.primary, button.secondary { font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); }
   button.primary { background: var(--accent); color: #0f1115; border-color: var(--accent); }
   button.secondary { background: var(--panel-2); color: var(--fg); }
@@ -53,6 +55,7 @@
 </header>
 <nav>
   <button class="tab-btn active" data-tab="browser">Browser</button>
+  <button class="tab-btn" data-tab="intent">Intent</button>
   <button class="tab-btn" data-tab="diff">Diff</button>
   <button class="tab-btn" data-tab="editor">Editor</button>
 </nav>
@@ -70,15 +73,41 @@
     </div>
   </section>
 
+  <section id="tab-intent" class="tab">
+    <div class="row" style="grid-template-columns: minmax(340px, 460px) 1fr;">
+      <div class="panel">
+        <h2>Raw Intent</h2>
+        <label for="intent-raw">Intent</label>
+        <textarea id="intent-raw" style="height:120px;" placeholder="I should work on code-server."></textarea>
+        <label for="intent-context">Context bullets (one per line)</label>
+        <textarea id="intent-context" style="height:120px;" placeholder="code-server is part of the active dev environment."></textarea>
+        <label for="intent-constraints">Constraint bullets (one per line)</label>
+        <textarea id="intent-constraints" style="height:120px;" placeholder="Do not change code-server configuration yet."></textarea>
+        <label for="intent-route">Route</label>
+        <input id="intent-route" value="SMI, Clarity Engine, Infrastructure Registry" aria-label="Route">
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="primary" id="intent-draft">Draft Mission</button>
+          <button class="secondary" id="intent-load-example">Load example</button>
+          <button class="primary" id="intent-register" disabled>Register Draft</button>
+          <span id="intent-status" style="color:var(--muted);align-self:center;margin-left:8px;"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Draft Mission Packet</h2>
+        <div id="intent-response"><div class="empty">Write raw intent and draft a mission packet.</div></div>
+      </div>
+    </div>
+  </section>
+
   <section id="tab-diff" class="tab">
     <div class="row" style="grid-template-columns: 1fr 1fr;">
       <div class="panel">
         <h2>Left (sha or JSON manifest)</h2>
-        <textarea id="diff-left" style="width:100%;height:180px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='e.g. c8d89234… or {"mission": "…", …}'></textarea>
+        <textarea id="diff-left" style="height:180px;" placeholder='e.g. c8d89234… or {"mission": "…", …}'></textarea>
       </div>
       <div class="panel">
         <h2>Right (sha or JSON manifest)</h2>
-        <textarea id="diff-right" style="width:100%;height:180px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='e.g. 0e8d952… or inline manifest JSON'></textarea>
+        <textarea id="diff-right" style="height:180px;" placeholder='e.g. 0e8d952… or inline manifest JSON'></textarea>
       </div>
     </div>
     <div style="margin-top:12px;">
@@ -97,7 +126,7 @@
         <h2>Manifest (JSON)
           <button class="secondary" id="editor-load-example" style="float:right;padding:4px 10px">Load example</button>
         </h2>
-        <textarea id="editor-input" style="width:100%;height:520px;background:var(--panel-2);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;" placeholder='Paste a PCP-lite manifest (JSON)…'></textarea>
+        <textarea id="editor-input" style="height:520px;" placeholder='Paste a PCP-lite manifest (JSON)…'></textarea>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="secondary" id="editor-lint">Lint</button>
           <button class="secondary" id="editor-compose">Compose</button>
@@ -137,6 +166,7 @@ function tabSwitcher() {
 }
 
 let selectedSha = null;
+let intentDraftManifest = null;
 
 async function loadPackets() {
   const list = $('#packet-list');
@@ -208,6 +238,92 @@ function renderDiff(diff) {
   section('Removed', 'var(--removed)', Object.entries(diff.removed), (k, v) => `${k}: ${JSON.stringify(v, null, 2)}`);
   section('Changed', 'var(--changed)', Object.entries(diff.changed), (k, v) => `${k}:\n- before: ${JSON.stringify(v.before, null, 2)}\n+ after:  ${JSON.stringify(v.after, null, 2)}`);
   return wrap;
+}
+
+function linesFromTextarea(selector) {
+  return $(selector).value
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
+function routeFromInput() {
+  return $('#intent-route').value
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean);
+}
+
+function renderIntentDraft(payload) {
+  const manifest = payload.manifest;
+  const status = payload.ok
+    ? '<span style="color:var(--added)">lint ok</span>'
+    : '<span class="error">lint errors</span>';
+  $('#intent-response').innerHTML = `
+    <div><strong>Status:</strong> ${status} <span class="sha">${payload.context_sha}</span></div>
+    ${payload.warnings.length ? `<h3>Warnings</h3><pre>${escapeHtml(payload.warnings.join('\n'))}</pre>` : ''}
+    ${payload.errors.length ? `<h3>Errors</h3><pre class="error">${escapeHtml(payload.errors.join('\n'))}</pre>` : ''}
+    <h3>Mission</h3>
+    <pre>${escapeHtml(manifest.mission)}</pre>
+    <h3>Current Reality</h3>
+    <pre>${escapeHtml((manifest.current_reality || []).map(item => '- ' + item).join('\n'))}</pre>
+    <h3>Constraints</h3>
+    <pre>${escapeHtml((manifest.constraints || []).map(item => '- ' + item).join('\n'))}</pre>
+    <h3>Acceptance</h3>
+    <pre>${escapeHtml((manifest.acceptance || []).map(item => '- ' + item).join('\n'))}</pre>
+    <h3>Notes</h3>
+    <pre>${escapeHtml((manifest.notes || []).map(item => '- ' + item).join('\n'))}</pre>
+    <h3>Manifest JSON</h3>
+    <pre>${escapeHtml(JSON.stringify(manifest, null, 2))}</pre>
+  `;
+}
+
+function renderIntentError(err) {
+  const msg = err.body ? JSON.stringify(err.body, null, 2) : (err.message || String(err));
+  $('#intent-response').innerHTML = `<pre class="error">${escapeHtml(msg)}</pre>`;
+}
+
+async function draftIntent() {
+  const status = $('#intent-status');
+  status.textContent = 'Drafting…';
+  $('#intent-register').disabled = true;
+  intentDraftManifest = null;
+  try {
+    const result = await api('POST', '/intents/draft', {
+      raw_intent: $('#intent-raw').value,
+      context: linesFromTextarea('#intent-context'),
+      constraints: linesFromTextarea('#intent-constraints'),
+      route: routeFromInput(),
+    });
+    status.textContent = '';
+    intentDraftManifest = result.manifest;
+    $('#intent-register').disabled = !result.ok;
+    renderIntentDraft(result);
+  } catch (err) {
+    status.textContent = '';
+    renderIntentError(err);
+  }
+}
+
+async function registerIntentDraft() {
+  const status = $('#intent-status');
+  if (!intentDraftManifest) return;
+  status.textContent = 'Registering…';
+  try {
+    const result = await api('POST', '/packets/register', intentDraftManifest);
+    status.textContent = result.registered ? 'Registered.' : 'Already registered.';
+    $('#intent-response').innerHTML = `
+      <div><strong>Registered:</strong> ${result.registered}</div>
+      <div><strong>context_sha:</strong> <code>${result.context_sha}</code></div>
+      <h3>Manifest JSON</h3>
+      <pre>${escapeHtml(JSON.stringify(intentDraftManifest, null, 2))}</pre>
+    `;
+    selectedSha = result.context_sha;
+    loadPackets();
+  } catch (err) {
+    status.textContent = '';
+    renderIntentError(err);
+  }
 }
 
 async function runDiff() {
@@ -290,6 +406,14 @@ async function editorAction(label, method, path) {
 
 tabSwitcher();
 $('#refresh').addEventListener('click', loadPackets);
+$('#intent-load-example').addEventListener('click', () => {
+  $('#intent-raw').value = 'I should work on code-server.';
+  $('#intent-context').value = 'code-server is part of the active dev environment.';
+  $('#intent-constraints').value = 'Do not change code-server configuration yet.';
+  $('#intent-route').value = 'SMI, Clarity Engine, Infrastructure Registry';
+});
+$('#intent-draft').addEventListener('click', draftIntent);
+$('#intent-register').addEventListener('click', registerIntentDraft);
 $('#diff-run').addEventListener('click', runDiff);
 $('#editor-load-example').addEventListener('click', () => {
   $('#editor-input').value = JSON.stringify(EXAMPLE_MANIFEST, null, 2);
