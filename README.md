@@ -73,7 +73,9 @@ docker compose up --build
 Runtime packet registry data is bind mounted from `./packets/registry` to
 `/app/packets/registry` inside the container so the UI shows the same registered
 packets as the host checkout. Generated registry artifacts remain excluded from
-git.
+git. The container writes as UID/GID `1000:1000` by default so registered
+packets remain editable by the host user. Set `CLARITY_UID` and `CLARITY_GID`
+before starting Compose if the checkout owner uses different numeric IDs.
 
 ### Compose / lint over HTTP
 ```bash
