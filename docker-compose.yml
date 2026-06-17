@@ -1,0 +1,24 @@
+services:
+  clarity-engine:
+    build: .
+    ports:
+      - "8010:8000"
+    volumes:
+      - clarity-engine-registry:/app/packets/registry
+    environment:
+      CLARITY_REGISTRY_ROOT: /app/packets/registry
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  clarity-engine-registry:

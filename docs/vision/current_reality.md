@@ -24,6 +24,9 @@
 ## Dependency / Runtime Reality
 - A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
 - Installing dependencies from `requirements.txt` succeeds in the development environment.
+- A `Dockerfile` exists for running the FastAPI app with Python 3.12.
+- `docker-compose.yml` launches the service on host port `8010` mapped to container port `8000`.
+- Compose persists runtime packet registry data in the named volume `clarity-engine-registry` mounted at `/app/packets/registry`.
 
 ## Verified Execution (Observed)
 - The service starts successfully via `uvicorn app.main:app --reload`.
@@ -42,6 +45,7 @@
 - Compose and lint endpoints are side-effect-free; register and enqueue write to the registry.
 - No authentication, secrets handling, or outbound network calls are present.
 - The browser UI is a static `ui/index.html` file mounted by FastAPI.
+- Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 
 ## Stage-01.5 Documentation State
 - `CLAUDE.md` added at repository root with project guidance for Claude Code (commands, architecture, constraints).

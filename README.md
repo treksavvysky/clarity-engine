@@ -58,6 +58,22 @@ uvicorn app.main:app --reload
 # Health:   curl http://127.0.0.1:8000/healthz
 ```
 
+### Docker Compose
+Clarity Engine reserves host port `8010` for containerized local access. Port
+`8000` is reserved for NGINX Manager on the host, so Compose maps host
+`8010` to container port `8000`.
+
+```bash
+docker compose up --build
+# UI:       http://127.0.0.1:8010/
+# API docs: http://127.0.0.1:8010/docs
+# Health:   curl http://127.0.0.1:8010/healthz
+```
+
+Runtime packet registry data is persisted in the named Docker volume
+`clarity-engine-registry`, mounted at `/app/packets/registry` inside the
+container. Generated registry artifacts remain excluded from git.
+
 ### Compose / lint over HTTP
 ```bash
 curl -s -X POST http://127.0.0.1:8000/packets/compose \
@@ -145,6 +161,7 @@ The browser UI also exposes this flow in the **Intent** tab: write raw intent, a
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
 - No outbound network calls. `callback_url` is transport-only data for downstream orchestrators.
 - Persistence is filesystem-only under `packets/registry/<sha>/`. No database, no auth.
+- Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 - Offline CI: tests and packet checks must not require network or secrets.
 
 ## Continuous Integration
