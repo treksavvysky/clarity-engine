@@ -26,7 +26,7 @@
 - Installing dependencies from `requirements.txt` succeeds in the development environment.
 - A `Dockerfile` exists for running the FastAPI app with Python 3.12.
 - `docker-compose.yml` launches the service on host port `8010` mapped to container port `8000`.
-- Compose persists runtime packet registry data in the named volume `clarity-engine-registry` mounted at `/app/packets/registry`.
+- Compose bind mounts `./packets/registry` to `/app/packets/registry` so the container and host checkout share the same runtime packet registry.
 
 ## Verified Execution (Observed)
 - The service starts successfully via `uvicorn app.main:app --reload`.

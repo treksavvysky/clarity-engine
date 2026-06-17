@@ -4,7 +4,7 @@ services:
     ports:
       - "8010:8000"
     volumes:
-      - clarity-engine-registry:/app/packets/registry
+      - ./packets/registry:/app/packets/registry
     environment:
       CLARITY_REGISTRY_ROOT: /app/packets/registry
     healthcheck:
@@ -19,6 +19,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
-volumes:
-  clarity-engine-registry:

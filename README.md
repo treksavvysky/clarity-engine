@@ -70,9 +70,10 @@ docker compose up --build
 # Health:   curl http://127.0.0.1:8010/healthz
 ```
 
-Runtime packet registry data is persisted in the named Docker volume
-`clarity-engine-registry`, mounted at `/app/packets/registry` inside the
-container. Generated registry artifacts remain excluded from git.
+Runtime packet registry data is bind mounted from `./packets/registry` to
+`/app/packets/registry` inside the container so the UI shows the same registered
+packets as the host checkout. Generated registry artifacts remain excluded from
+git.
 
 ### Compose / lint over HTTP
 ```bash
