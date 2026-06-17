@@ -1,6 +1,7 @@
 """FastAPI application for Clarity Engine."""
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -66,7 +67,48 @@ def _optional_string_list(body: dict[str, Any], field: str) -> list[str]:
     return items
 
 
-def _draft_smallest_next_action(raw_intent: str) -> str:
+def _sentence(text: str) -> str:
+    normalized = " ".join(text.strip().split()).rstrip(".")
+    if not normalized:
+        return normalized
+    return normalized[0].upper() + normalized[1:] + "."
+
+
+def _make_constraint_testable(text: str) -> str:
+    replacements = [
+        (r"\bshould\b", "must"),
+        (r"\bcould\b", "can"),
+        (r"\bmight\b", "may"),
+    ]
+    normalized = text
+    for pattern, replacement in replacements:
+        normalized = re.sub(pattern, replacement, normalized, flags=re.IGNORECASE)
+    return _sentence(normalized)
+
+
+def _extract_declared_task(raw_intent: str, context: list[str]) -> str | None:
+    candidates = [*context, raw_intent]
+    patterns = [
+        r"\b(?:the\s+)?present task should (?P<task>.+)",
+        r"\b(?:the\s+)?present task is to (?P<task>.+)",
+        r"\b(?:this\s+)?task should (?P<task>.+)",
+        r"\b(?:this\s+)?task is to (?P<task>.+)",
+    ]
+
+    for candidate in candidates:
+        text = " ".join(candidate.strip().split())
+        for pattern in patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                return _sentence(match.group("task"))
+    return None
+
+
+def _draft_smallest_next_action(raw_intent: str, context: list[str]) -> str:
+    declared_task = _extract_declared_task(raw_intent, context)
+    if declared_task:
+        return declared_task
+
     normalized = raw_intent.strip().rstrip(".")
     lowered = normalized.lower()
     prefix = "i should work on "
@@ -89,7 +131,7 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
     constraints = _optional_string_list(body, "constraints")
     route = _optional_string_list(body, "route")
 
-    next_action = _draft_smallest_next_action(raw_intent)
+    next_action = _draft_smallest_next_action(raw_intent, context)
     route_text = " -> ".join(route) if route else "Clarity Engine"
     current_reality = [
         f"Raw intent received: {raw_intent}",
@@ -102,7 +144,7 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
         "Do not register the packet until the draft is reviewed.",
         "Convert only one raw intent into one mission packet draft.",
     ]
-    manifest_constraints.extend(constraints)
+    manifest_constraints.extend(_make_constraint_testable(item) for item in constraints)
     manifest_constraints.append(f"Route through: {route_text}.")
 
     return {
@@ -110,27 +152,28 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
         "stage": "Stage-07",
         "substage": "raw-intent-draft",
         "version": "1.0.0",
-        "mission": "Clarify one raw human intent into the smallest executable mission packet draft.",
+        "mission": next_action,
         "current_reality": current_reality,
         "constraints": manifest_constraints,
         "acceptance": [
-            "Create one draft mission packet from the provided raw intent.",
-            "Include the smallest concrete next action for the clarified mission.",
+            f"Produce one reviewed mission packet draft for: {next_action}",
+            "Include the supplied context, constraints, and route in the draft.",
+            "Include the smallest bounded improvement without expanding into execution.",
             "Return a PCP-lite manifest that passes lint without errors.",
             "Exclude registry writes until a human or agent approves the draft.",
         ],
         "required_artifacts": [
-            "Returned draft PCP-lite manifest for review.",
-            f"Smallest next action: {next_action}",
+            f"Returned draft PCP-lite manifest for: {next_action}",
+            "Rendered packet markdown preview for review.",
         ],
         "failure_modes": [
             "The draft stays abstract and does not name a smallest next action.",
-            "The draft expands into execution, platform building, or workflow automation.",
+            "The draft expands into execution, platform building, or context-engine architecture.",
             "The draft bypasses review and writes directly to the packet registry.",
         ],
         "substage_gate": [
             "In-scope: draft one mission packet from one raw intent.",
-            "Out-of-scope: registering packets, executing tasks, adding UI, or automating workflows.",
+            "Out-of-scope: registering packets, executing tasks, building MCP servers, or automating workflows.",
         ],
         "notes": [
             f"Raw intent: {raw_intent}",

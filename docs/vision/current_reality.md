@@ -159,6 +159,8 @@ All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/Rea
 - The endpoint deterministically returns `{ ok, errors, warnings, manifest, packet_md, context_sha, registered }`.
 - `registered` is always `false`; the endpoint is side-effect-free and does not write to `packets/registry/`.
 - The draft manifest is linted before return, and callers can send the returned manifest to `/packets/register` after review.
+- Draft mission text is derived from a declared task such as "the present task should ..." when supplied; otherwise it falls back to the smallest deterministic next action heuristic.
+- User-supplied constraints are normalized away from vague modal language such as "should" before linting the draft.
 
 ## Stage-07.2 Raw Intent UI
 - The static browser UI includes an Intent tab.
