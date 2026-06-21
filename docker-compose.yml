@@ -6,8 +6,10 @@ services:
       - "8010:8000"
     volumes:
       - ./packets/registry:/app/packets/registry
+      - ./packets/intents:/app/packets/intents
     environment:
       CLARITY_REGISTRY_ROOT: /app/packets/registry
+      CLARITY_INTENT_REGISTRY_ROOT: /app/packets/intents
     healthcheck:
       test:
         [

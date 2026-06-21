@@ -3,7 +3,8 @@
 - `packets/examples/` contains committed PCP-lite and Raw Intent examples.
 - `packets/registry/<context_sha>/` contains runtime Mission Packet records and
   is ignored by git.
-- Future Raw Intent persistence will use a separate runtime namespace; the
-  current release ships only schema and deterministic composition tooling.
+- `packets/intents/<intent_sha>/` contains runtime Raw Intent Packet revisions
+  and is ignored by git except for `.gitkeep`.
 
-Do not commit runtime data dumps; only include intentional fixtures or examples aligned with `pcp_lite.schema.json`.
+Do not commit runtime data dumps; only include intentional fixtures or examples
+aligned with the corresponding contract.

@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-07.2 + Raw Intent Contract Layer
+# Current Reality (Facts Only) — Stage-07.2 + Raw Intent Persistence/API
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -8,7 +8,7 @@
   - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
 
 ## API Implementation State
-- A FastAPI application at `app/main.py` (v0.2.0) exposes:
+- A FastAPI application at `app/main.py` (v0.3.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
   - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
@@ -188,7 +188,19 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
 - The canonical example identity is
   `0d0c7657719231ad5f8d778dbe64b58f4bb26a664afaeb4ded590fb6620aa478`.
 - CI lints and composes the canonical Raw Intent Packet example.
-- This layer does not add intent persistence, HTTP endpoints, MCP tools,
-  promotion, or UI changes.
+- `app/intent_registry.py` stores immutable Raw Intent revisions atomically
+  under `packets/intents/<intent_sha>/` and validates schema, identity, rendered
+  Markdown, parent existence, exact raw-intent equality, lifecycle transitions,
+  and ancestry.
+- `CLARITY_INTENT_REGISTRY_ROOT` overrides the Raw Intent registry root.
+- FastAPI exposes `POST /intents/lint`, `POST /intents/compose`,
+  `POST /intents/register`, `GET /intents`, `GET /intents/{intent_sha}`,
+  `GET /intents/{intent_sha}/ancestors`, and `POST /intents/diff`.
+- Lint and compose are side-effect-free; registration is explicit, append-only,
+  atomic, and idempotent.
+- Docker Compose independently bind mounts `./packets/intents` with the same
+  configurable UID/GID used by the Mission Packet registry.
+- Raw Intent MCP tools, promotion, mission-link records, and UI migration are
+  not implemented.
 - Existing PCP-lite behavior, packet hashes, registry paths, MCP tools, and
   `/intents/draft` behavior remain unchanged.

@@ -14,7 +14,7 @@ All documented stages through Stage-07.2 are shipped:
 | 05 | MCP server (`python -m app.mcp_server`) exposing compose/lint/register/get/list/diff/enqueue/check_action |
 | 06 | Static browser UI at `/` with Browser / Intent / Diff / Editor tabs |
 | 07 | Raw-intent draft intake (`POST /intents/draft`) returning reviewable PCP-lite manifests without registry writes |
-| Contract layer | Separate Raw Intent Packet schema and deterministic lint/compose/hash tooling |
+| Raw Intent | Separate schema, deterministic tooling, immutable registry, lineage, diff, and HTTP access |
 
 See `docs/vision/current_reality.md` for the full fact sheet.
 
@@ -40,6 +40,7 @@ clarity-engine/
 ├── app/
 │   ├── main.py                     # FastAPI app (HTTP endpoints + UI mount)
 │   ├── mcp_server.py               # MCP stdio server
+│   ├── intent_registry.py          # Immutable Raw Intent Packet store
 │   └── registry.py                 # Content-addressed filesystem store
 ├── tools/                          # compose_packet.py, lint_packet.py
 ├── packets/
@@ -76,9 +77,11 @@ docker compose up --build
 Runtime packet registry data is bind mounted from `./packets/registry` to
 `/app/packets/registry` inside the container so the UI shows the same registered
 packets as the host checkout. Generated registry artifacts remain excluded from
-git. The container writes as UID/GID `1000:1000` by default so registered
-packets remain editable by the host user. Set `CLARITY_UID` and `CLARITY_GID`
-before starting Compose if the checkout owner uses different numeric IDs.
+git. Raw Intent Packet records are independently bind mounted from
+`./packets/intents` to `/app/packets/intents`. The container writes both
+registries as UID/GID `1000:1000` by default so records remain editable by the
+host user. Set `CLARITY_UID` and `CLARITY_GID` before starting Compose if the
+checkout owner uses different numeric IDs.
 
 ### Compose / lint over HTTP
 ```bash
@@ -149,7 +152,39 @@ string is never trimmed or rewritten. Deterministic composition emits
 `manifest.json`, `intent.md`, and `intent_sha`.
 
 See `docs/RAW_INTENT_PACKET.md` for field semantics, lifecycle values, identity
-rules, and the current contract-only boundary.
+rules, persistence behavior, HTTP operations, and current exclusions.
+
+### Raw Intent HTTP API
+
+```bash
+# Side-effect-free validation and composition
+curl -s -X POST http://127.0.0.1:8000/intents/lint \
+  -H "Content-Type: application/json" \
+  -d @packets/examples/raw_intent_packet_example.json
+curl -s -X POST http://127.0.0.1:8000/intents/compose \
+  -H "Content-Type: application/json" \
+  -d @packets/examples/raw_intent_packet_example.json
+
+# Explicit persistence and retrieval
+curl -s -X POST http://127.0.0.1:8000/intents/register \
+  -H "Content-Type: application/json" \
+  -d @packets/examples/raw_intent_packet_example.json
+curl -s http://127.0.0.1:8000/intents
+curl -s http://127.0.0.1:8000/intents/<intent_sha>
+curl -s http://127.0.0.1:8000/intents/<intent_sha>/ancestors
+```
+
+`POST /intents/diff` accepts `left` and `right`, each an `intent_sha` or inline
+Raw Intent Packet manifest. Registered revisions live under
+`packets/intents/<intent_sha>/`; override the host runtime root with
+`CLARITY_INTENT_REGISTRY_ROOT`.
+
+Registration enforces immutable lineage: roots begin as `captured`, child
+revisions must preserve `raw_intent` exactly, and status changes must follow the
+documented lifecycle. Corrupt records and broken lineage return explicit errors.
+
+Raw Intent MCP tools, promotion, Mission Packet links, and browser UI migration
+remain deferred.
 
 ## Raw Intent Intake
 Clarity Engine can draft a PCP-lite manifest from one raw human intent without registering or enqueueing it:
@@ -183,6 +218,7 @@ The browser UI also exposes this flow in the **Intent** tab: write raw intent, a
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
 - No outbound network calls. `callback_url` is transport-only data for downstream orchestrators.
 - Persistence is filesystem-only under `packets/registry/<sha>/`. No database, no auth.
+- Raw Intent persistence is filesystem-only under `packets/intents/<intent_sha>/`.
 - Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 - Offline CI: tests and packet checks must not require network or secrets.
 

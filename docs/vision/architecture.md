@@ -8,7 +8,8 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 ## Components (Shipped)
 - **Packet toolchain (CLI):** `tools/compose_packet.py` and `tools/lint_packet.py` produce `packet.md`, normalized manifests, and `context_sha` deterministically from `pcp_lite.schema.json`.
 - **Content-addressed registry:** `app/registry.py` writes `packets/registry/<sha>/{manifest.json,packet.md}` (Stage-03). Overridable via `CLARITY_REGISTRY_ROOT`. Idempotent, append-only at the API surface.
-- **Backend runtime (FastAPI):** `app/main.py` serves `/healthz`, `/openapi.json` (with `?server=` injection), `/packets/compose`, `/packets/lint`, `/packets/register`, `/packets/{sha}`, `/packets/{sha}/ancestors`, `/packets`, `/packets/diff`, `/packets/enqueue`, and mounts the static UI at `/` and `/ui/*`. Packet validation uses JSON Schema (not Pydantic) via `tools/lint_packet.py` so CLI and HTTP share the same rules.
+- **Raw Intent registry:** `app/intent_registry.py` atomically stores immutable revisions under `packets/intents/<intent_sha>/{manifest.json,intent.md}`. It validates record integrity, exact raw-intent preservation, lifecycle transitions, and ancestry. Overridable via `CLARITY_INTENT_REGISTRY_ROOT`.
+- **Backend runtime (FastAPI):** `app/main.py` serves the Mission Packet operations plus Raw Intent lint, compose, register, list, get, ancestors, and diff endpoints. `/intents/draft` remains the legacy direct Mission Packet draft flow. Shared contract modules define validation and deterministic output rather than Pydantic models.
 - **MCP server:** `app/mcp_server.py` exposes compose, lint, register, get, list, diff, enqueue, and `check_action` as MCP tools over stdio (`python -m app.mcp_server`). All tools delegate to the same modules the HTTP endpoints use.
 - **Agentic workflow ties (JCT):** `POST /packets/enqueue` returns a JCT-ready envelope with `task_id === context_sha` and the optional `callback_url` transport field (Clarity Engine never calls it).
 - **UI:** `ui/index.html` is a single static page with Browser / Diff / Editor tabs, served by FastAPI. No Node toolchain. A Next.js replacement remains the long-term aspiration and can swap in without backend changes.
@@ -19,6 +20,14 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 3. Register (or enqueue) persists `manifest.json` + `packet.md` under `packets/registry/<sha>/` — idempotent on re-register.
 4. Agents consume packets over HTTP or MCP; `check_action` gates proposed actions against `allowed_actions`.
 5. The UI reads and writes via the same HTTP endpoints.
+
+Raw Intent revisions follow a parallel pre-mission flow:
+
+1. A v1 Raw Intent manifest is validated and deterministically composed.
+2. Explicit registration enforces root or legal parent-transition rules.
+3. The complete record is published atomically under its `intent_sha`.
+4. Read, list, diff, and ancestry APIs verify integrity before returning data.
+5. MCP access, promotion, mission links, and UI migration remain deferred.
 
 ---
 

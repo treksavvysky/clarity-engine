@@ -9,19 +9,18 @@ from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import registry
-from tools import compose_packet, lint_packet
+from app import intent_registry, registry
+from tools import compose_packet, lint_packet, raw_intent_packet
 
 UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 app = FastAPI(
     title="Clarity Engine",
-    version="0.2.0",
+    version="0.3.0",
     description=(
-        "Intent-to-packet compiler for AI agents. "
-        "Transforms human intent into standardized, testable Context Packets "
-        "that agents can execute without ambiguity. "
-        "Use /packets/compose to generate packets and /packets/lint to validate manifests."
+        "Intent and context contract service for human-AI workflows. "
+        "Preserves ungrounded thought as Raw Intent Packets and composes grounded "
+        "PCP-lite Mission Packets through separate deterministic contracts."
     ),
     openapi_tags=[
         {
@@ -256,6 +255,144 @@ def draft_intent_endpoint(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
         "context_sha": context_sha,
         "registered": False,
     }
+
+
+def _intent_error(exc: intent_registry.IntentRegistryError) -> HTTPException:
+    status_code = 404 if isinstance(exc, intent_registry.UnknownIntentError) else 409
+    if isinstance(exc, intent_registry.InvalidIntentError):
+        status_code = 400
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": exc.code, "message": exc.message},
+    )
+
+
+@app.post(
+    "/intents/lint",
+    tags=["intents"],
+    summary="Validate a Raw Intent Packet",
+    description=(
+        "Validates a Raw Intent Packet against its separate v1 contract. "
+        "This operation is side-effect-free and does not create a Mission Packet."
+    ),
+)
+def lint_intent_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    errors = raw_intent_packet.validate_manifest(manifest)
+    return {"ok": not errors, "errors": errors, "warnings": []}
+
+
+@app.post(
+    "/intents/compose",
+    tags=["intents"],
+    summary="Compose a Raw Intent Packet",
+    description=(
+        "Validates and deterministically returns the normalized manifest, rendered "
+        "intent Markdown, and intent_sha without writing to the registry."
+    ),
+)
+def compose_intent_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        raise _intent_error(
+            intent_registry.InvalidIntentError(
+                "Raw Intent Packet manifest must be a JSON object."
+            )
+        )
+    try:
+        result = raw_intent_packet.compose_manifest(manifest)
+    except ValueError as exc:
+        raise _intent_error(intent_registry.InvalidIntentError(str(exc))) from exc
+    return {
+        "manifest": result["manifest"],
+        "intent_md": result["intent_md"],
+        "intent_sha": result["intent_sha"],
+    }
+
+
+@app.post(
+    "/intents/register",
+    tags=["intents"],
+    summary="Register an immutable Raw Intent Packet revision",
+    description=(
+        "Validates lifecycle and lineage rules, then atomically persists the revision "
+        "under packets/intents/<intent_sha>/. Duplicate registration is idempotent."
+    ),
+)
+def register_intent_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        raise _intent_error(
+            intent_registry.InvalidIntentError(
+                "Raw Intent Packet manifest must be a JSON object."
+            )
+        )
+    try:
+        return intent_registry.register(manifest)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+
+
+@app.get(
+    "/intents",
+    tags=["intents"],
+    summary="List registered Raw Intent Packet revisions",
+    description=(
+        "Returns deterministic summaries for valid records. Corrupt and temporary "
+        "registry entries are not presented as valid Raw Intent Packets."
+    ),
+)
+def list_intents_endpoint() -> dict[str, Any]:
+    return {"intents": intent_registry.list_summaries()}
+
+
+@app.get(
+    "/intents/{intent_sha}",
+    tags=["intents"],
+    summary="Retrieve a registered Raw Intent Packet",
+    description="Returns the verified normalized manifest and rendered intent Markdown.",
+)
+def get_intent_endpoint(intent_sha: str) -> dict[str, Any]:
+    try:
+        return intent_registry.read(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+
+
+@app.get(
+    "/intents/{intent_sha}/ancestors",
+    tags=["intents"],
+    summary="Retrieve Raw Intent revision ancestry",
+    description="Returns verified ancestors from nearest parent to oldest root.",
+)
+def get_intent_ancestors_endpoint(intent_sha: str) -> dict[str, Any]:
+    try:
+        intent_registry.read(intent_sha)
+        lineage = intent_registry.ancestors(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+    return {"intent_sha": intent_sha, "ancestors": lineage}
+
+
+@app.post(
+    "/intents/diff",
+    tags=["intents"],
+    summary="Diff two Raw Intent Packet revisions",
+    description=(
+        "Each side is either an intent_sha or an inline Raw Intent Packet manifest. "
+        "Inline manifests are validated before field-level comparison."
+    ),
+)
+def diff_intents_endpoint(body: Any = Body(...)) -> dict[str, Any]:
+    if not isinstance(body, dict) or "left" not in body or "right" not in body:
+        raise _intent_error(
+            intent_registry.InvalidIntentError(
+                "Request body must include 'left' and 'right'."
+            )
+        )
+    try:
+        left = intent_registry.resolve_manifest(body["left"], "left")
+        right = intent_registry.resolve_manifest(body["right"], "right")
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+    return intent_registry.diff_manifests(left, right)
 
 
 @app.post(

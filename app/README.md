@@ -1,10 +1,20 @@
-# App Directory (Stage-01.3)
+# App Directory
 
-The backend runtime hosts a FastAPI application that exposes deterministic
-transport adapters over the Stage-0 packet tools:
+The backend runtime hosts FastAPI transport adapters over shared deterministic
+Mission Packet and Raw Intent Packet modules.
+
+Core operations include:
 - `GET /healthz`
 - `POST /packets/compose`
 - `POST /packets/lint`
+- `POST /packets/register`, list/get/ancestors/diff/enqueue
+- `POST /intents/draft` for the legacy direct Mission Packet draft flow
+- `POST /intents/lint`, `/intents/compose`, and `/intents/register`
+- `GET /intents`, `/intents/{intent_sha}`, and ancestry
+- `POST /intents/diff`
+
+`app/registry.py` stores Mission Packets. `app/intent_registry.py` independently
+stores immutable Raw Intent Packet revisions and enforces lifecycle lineage.
 
 ## Run locally
 1. Install dependencies from the repository root:
@@ -21,5 +31,6 @@ transport adapters over the Stage-0 packet tools:
    # {"status": "ok"}
    ```
 
-Keep imports side-effect free; no persistence, auth, or outbound calls are
-permitted in this stage.
+Keep imports side-effect free. Persistence is local filesystem-only. No
+authentication, database, background worker, or outbound network behavior is
+present.

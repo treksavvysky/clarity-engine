@@ -61,15 +61,38 @@ The canonical example hash is:
 0d0c7657719231ad5f8d778dbe64b58f4bb26a664afaeb4ded590fb6620aa478
 ```
 
+## Registry and HTTP Access
+
+Registered revisions are stored independently from Mission Packets:
+
+```text
+packets/intents/<intent_sha>/manifest.json
+packets/intents/<intent_sha>/intent.md
+```
+
+Set `CLARITY_INTENT_REGISTRY_ROOT` to override the runtime root. Registration is
+append-only, atomic, and idempotent. Reads verify schema, directory identity,
+and deterministic Markdown before returning a record.
+
+Roots begin in `captured`. Child revisions require a registered parent, preserve
+`raw_intent` exactly, and follow the documented lifecycle. Ancestry is returned
+nearest parent first.
+
+HTTP operations:
+
+- `POST /intents/lint`
+- `POST /intents/compose`
+- `POST /intents/register`
+- `GET /intents`
+- `GET /intents/{intent_sha}`
+- `GET /intents/{intent_sha}/ancestors`
+- `POST /intents/diff`
+
+Lint and compose remain side-effect-free.
+
 ## Current Boundary
 
-This release provides the contract layer only. It does not add:
-
-- Raw Intent persistence or registry APIs.
-- HTTP endpoints.
-- MCP tools.
-- promotion into Mission Packets.
-- UI changes.
-
-The existing `/intents/draft` endpoint remains unchanged and continues to
-produce a side-effect-free PCP-lite Mission Packet candidate.
+This release does not add Raw Intent MCP tools, promotion into Mission Packets,
+intent-to-mission link records, or UI changes. The existing `/intents/draft`
+endpoint remains unchanged and continues to produce a side-effect-free PCP-lite
+Mission Packet candidate.
