@@ -1,7 +1,19 @@
-# Tools (Stage 0)
+# Tools
 
-This directory is reserved for deterministic packet tooling:
-- `compose_packet.py` will emit markdown packets, normalized manifests, and context hashes.
-- `lint_packet.py` will validate manifests against `pcp_lite.schema.json` and sanity-check content.
+Deterministic contract tooling:
 
-Stage 0 does not ship runtime tools; add documentation or design notes only.
+- `compose_packet.py` emits PCP-lite packet Markdown, normalized manifests, and
+  `context_sha`.
+- `lint_packet.py` validates PCP-lite manifests and reports ambiguity warnings.
+- `raw_intent_packet.py` validates and composes Raw Intent Packets into
+  normalized manifests, `intent.md`, and `intent_sha`.
+
+Raw Intent Packet commands:
+
+```bash
+python tools/raw_intent_packet.py lint \
+  packets/examples/raw_intent_packet_example.json
+python tools/raw_intent_packet.py compose \
+  packets/examples/raw_intent_packet_example.json \
+  --output-dir /tmp/raw-intent-packet
+```

@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-07.2 Complete
+# Current Reality (Facts Only) — Stage-07.2 + Raw Intent Contract Layer
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -173,3 +173,22 @@ All documented stages through Stage-07.2 are shipped. The service exposes HTTP, 
 
 ## Raw Intent Intake Boundary
 Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manifests for packet operations. `POST /intents/draft` is the explicit raw-intent intake boundary: it converts `{ raw_intent, context, constraints, route }` into a draft mission packet for review, lint, compose, register, or enqueue.
+
+## Raw Intent Packet Contract Layer
+- `raw_intent_packet.schema.json` defines a separate v1 contract for preserving
+  ungrounded human intent.
+- Required fields are `version`, `raw_intent`, `status`, and `provenance`.
+- The schema separates human context, constraints, desired direction,
+  assumptions, related projects, clarification needs, and context sources from
+  derived grounding fields.
+- `tools/raw_intent_packet.py` validates, normalizes, renders, and computes a
+  deterministic `intent_sha`.
+- Accepted `raw_intent` strings retain leading, trailing, internal, multiline,
+  and Unicode content exactly. Whitespace-only values are rejected.
+- The canonical example identity is
+  `0d0c7657719231ad5f8d778dbe64b58f4bb26a664afaeb4ded590fb6620aa478`.
+- CI lints and composes the canonical Raw Intent Packet example.
+- This layer does not add intent persistence, HTTP endpoints, MCP tools,
+  promotion, or UI changes.
+- Existing PCP-lite behavior, packet hashes, registry paths, MCP tools, and
+  `/intents/draft` behavior remain unchanged.

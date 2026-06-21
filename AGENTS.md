@@ -102,6 +102,19 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
      - `examples/` or `packets/examples/`
    - Keep examples valid against `pcp_lite.schema.json`.
 
+### 3.2.1 Raw Intent Packet Contract
+
+- `raw_intent_packet.schema.json` defines captured human intent before it is
+  grounded into a Mission Packet.
+- `tools/raw_intent_packet.py` validates and deterministically composes Raw
+  Intent Packet artifacts.
+- Keep Raw Intent fields semantically separate from PCP-lite Mission Packet
+  fields. In particular, do not place unverified raw intent in factual
+  `current_reality`.
+- Preserve accepted `raw_intent` strings verbatim.
+- Contract changes require synchronized schema, examples, tests,
+  `docs/RAW_INTENT_PACKET.md`, README, and CI updates.
+
 ---
 
 ### 3.3 Tools

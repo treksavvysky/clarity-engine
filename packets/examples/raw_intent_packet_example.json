@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "raw_intent": "The Clarity Engine may need a durable context layer so coding agents can ground vague human intent before drafting a Mission Packet.",
+  "status": "captured",
+  "provenance": {
+    "source": "ui",
+    "author": "human",
+    "captured_at": "2026-06-20T17:00:00-07:00"
+  },
+  "human_context": [
+    "Clarity Engine already produces deterministic PCP-lite Mission Packets."
+  ],
+  "constraints": [
+    "Do not build a general-purpose context platform."
+  ],
+  "desired_direction": "Preserve raw thought first, then ground it before mission drafting.",
+  "assumptions": [
+    "A read-oriented MCP interface can make captured intent available to coding agents."
+  ],
+  "related_projects": [
+    "System Memory Index",
+    "Fluxion"
+  ],
+  "clarifications_needed": [
+    "Which context sources are required before an intent is ready for mission drafting?"
+  ],
+  "context_sources": [
+    "repo:clarity-engine",
+    "fluxion:CLARITY-EN"
+  ]
+}

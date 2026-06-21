@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Clarity Engine Raw Intent Packet",
+  "description": "Schema for provenance-preserving human intent captured before grounding into a PCP-lite Mission Packet.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "raw_intent",
+    "status",
+    "provenance"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": [
+        "1.0.0"
+      ]
+    },
+    "raw_intent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Original human entry preserved verbatim."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "captured",
+        "grounding",
+        "clarification_needed",
+        "ready_for_mission",
+        "promoted",
+        "abandoned"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "api",
+            "cli",
+            "mcp",
+            "import"
+          ]
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "human_context": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "constraints": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "desired_direction": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assumptions": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "related_projects": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "clarifications_needed": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "context_sources": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "verified_facts": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "grounding_observations": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "rejected_assumptions": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "clarification_answers": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "unresolved_gaps": {
+      "$ref": "#/definitions/nonEmptyStringArray"
+    },
+    "parent_intent_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "definitions": {
+    "nonEmptyStringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    }
+  }
+}

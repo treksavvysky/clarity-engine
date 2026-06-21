@@ -14,6 +14,7 @@ All documented stages through Stage-07.2 are shipped:
 | 05 | MCP server (`python -m app.mcp_server`) exposing compose/lint/register/get/list/diff/enqueue/check_action |
 | 06 | Static browser UI at `/` with Browser / Intent / Diff / Editor tabs |
 | 07 | Raw-intent draft intake (`POST /intents/draft`) returning reviewable PCP-lite manifests without registry writes |
+| Contract layer | Separate Raw Intent Packet schema and deterministic lint/compose/hash tooling |
 
 See `docs/vision/current_reality.md` for the full fact sheet.
 
@@ -22,7 +23,9 @@ These files define how the project operates and must stay in sync.
 - `AGENTS.md` — operating guide and constraints for agents contributing to the repo.
 - `CONTEXT_PACKET_TEMPLATE.md` — paste-ready Context Packet template aligned with the schema.
 - `pcp_lite.schema.json` — machine-readable Project Context Protocol lite (PCP-lite) contract for packet manifests.
+- `raw_intent_packet.schema.json` — provenance-preserving contract for ungrounded human intent.
 - `packets/examples/context_packet_example.json` — minimal manifest example conforming to the PCP-lite schema.
+- `packets/examples/raw_intent_packet_example.json` — canonical Raw Intent Packet example.
 - `CLAUDE.md` — project guidance for Claude Code and the commit-per-substage workflow.
 - `.github/workflows/ci.yml` — CI pipeline covering tests, packet checks, and import verification.
 
@@ -130,7 +133,23 @@ Then open this repo in Claude Code and approve the server when prompted. The 8 t
 ```bash
 python tools/compose_packet.py packets/examples/context_packet_example.json
 python tools/lint_packet.py packets/examples/context_packet_example.json
+
+python tools/raw_intent_packet.py lint \
+  packets/examples/raw_intent_packet_example.json
+python tools/raw_intent_packet.py compose \
+  packets/examples/raw_intent_packet_example.json \
+  --output-dir /tmp/raw-intent-packet
 ```
+
+## Raw Intent Packet Contract
+
+Raw Intent Packets preserve original human thought before grounding and are
+separate from executable PCP-lite Mission Packets. The accepted `raw_intent`
+string is never trimmed or rewritten. Deterministic composition emits
+`manifest.json`, `intent.md`, and `intent_sha`.
+
+See `docs/RAW_INTENT_PACKET.md` for field semantics, lifecycle values, identity
+rules, and the current contract-only boundary.
 
 ## Raw Intent Intake
 Clarity Engine can draft a PCP-lite manifest from one raw human intent without registering or enqueueing it:
@@ -174,6 +193,7 @@ CI runs on every push and pull request via [`.github/workflows/ci.yml`](.github/
 - `docs/vision/mission.md` — extended mission and principles
 - `docs/vision/architecture.md` — architecture notes and the stage roadmap
 - `docs/vision/current_reality.md` — facts-only inventory of what's shipped
+- `docs/RAW_INTENT_PACKET.md` — Raw Intent Packet contract and tooling
 - `docs/vision/STAGE-0{1,2,3,4,5,6}-MISSION.md` — per-stage plans and gates
 
 ## License

@@ -36,3 +36,9 @@ jobs:
 
       - name: Compose packet from example manifest
         run: python tools/compose_packet.py packets/examples/context_packet_example.json
+
+      - name: Lint example raw intent packet
+        run: python tools/raw_intent_packet.py lint packets/examples/raw_intent_packet_example.json
+
+      - name: Compose raw intent packet from example manifest
+        run: python tools/raw_intent_packet.py compose packets/examples/raw_intent_packet_example.json --output-dir /tmp/raw-intent-packet

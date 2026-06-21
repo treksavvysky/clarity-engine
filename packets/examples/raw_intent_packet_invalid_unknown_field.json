@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "raw_intent": "Capture this thought without treating it as fact.",
+  "status": "captured",
+  "provenance": {
+    "source": "ui"
+  },
+  "mission": "This field belongs to a Mission Packet."
+}
