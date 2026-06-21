@@ -11,6 +11,11 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 - **Raw Intent registry:** `app/intent_registry.py` atomically stores immutable revisions under `packets/intents/<intent_sha>/{manifest.json,intent.md}`. It validates record integrity, exact raw-intent preservation, lifecycle transitions, and ancestry. Overridable via `CLARITY_INTENT_REGISTRY_ROOT`.
 - **Grounding workflow:** `app/intent_workflow.py` creates immutable child revisions containing source-attributed grounding entries and stable-ID clarification records. It enforces readiness independently of lifecycle transition legality.
 - **Promotion workflow:** `app/intent_promotion.py` validates readiness, a lint-clean PCP-lite candidate, explicit human approval, and per-entry grounding references before coordinating retry-safe registration of the Mission Packet, authoritative link, and terminal promoted Raw Intent revision.
+- **Agent refinement proposal contract:** `agent_refinement_proposal.schema.json`
+  and `tools/agent_refinement_proposal.py` define deterministic, side-effect-free
+  agent analysis bound to one Raw Intent revision. Proposals remain outside
+  immutable Raw Intent lineage until a future human review workflow accepts
+  selected material.
 - **Intent-to-mission links:** `app/intent_links.py` atomically stores authoritative records under `packets/links/intent-missions/<intent_sha>/<context_sha>.json` and verifies both registries plus grounding-reference integrity on read.
 - **Backend runtime (FastAPI):** `app/main.py` serves the Mission Packet operations plus Raw Intent lint, compose, register, list, get, ancestors, diff, grounding, clarification, promotion, and linked-mission endpoints. `/intents/draft` remains the legacy direct Mission Packet draft flow. Shared contract modules define validation and deterministic output rather than Pydantic models.
 - **MCP server:** `app/mcp_server.py` exposes eight Mission Packet tools plus five read-only Raw Intent tools (`list`, `get`, `lineage`, `linked missions`, `diff`) over stdio. All tools delegate to the same modules the HTTP endpoints use.

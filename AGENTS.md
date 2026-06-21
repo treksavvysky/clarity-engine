@@ -115,6 +115,17 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
 - Contract changes require synchronized schema, examples, tests,
   `docs/RAW_INTENT_PACKET.md`, README, and CI updates.
 
+### 3.2.2 Agent Refinement Proposal Contract
+
+- `agent_refinement_proposal.schema.json` defines agent analysis bound to one
+  exact Raw Intent revision before human acceptance.
+- `tools/agent_refinement_proposal.py` validates and deterministically composes
+  proposal artifacts without registry writes.
+- Proposals must not encode readiness, approval, promotion, enqueue, execution,
+  or direct Raw Intent lifecycle changes.
+- Contract changes require synchronized schema, examples, tests,
+  `docs/AGENT_REFINEMENT_PROPOSAL.md`, README, and CI updates.
+
 ---
 
 ### 3.3 Tools

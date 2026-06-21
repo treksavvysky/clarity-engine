@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "source_intent_sha": "3554a8228b207b39a313bb0bdf6dbf2987a2a859ff60f7d8eb6fa52b64802ca0",
+  "proposer": {
+    "agent": "Codex",
+    "transport": "mcp"
+  },
+  "summary": "Invalid proposal with authority-bearing fields.",
+  "grounding_entries": [
+    {
+      "kind": "verified_fact",
+      "statement": "A fact.",
+      "sources": [
+        "repo:README.md"
+      ]
+    }
+  ],
+  "clarification_questions": [],
+  "unresolved_gaps": [],
+  "created_at": "2026-06-21T23:35:00-07:00",
+  "approved": true
+}

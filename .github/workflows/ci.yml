@@ -54,3 +54,9 @@ jobs:
 
       - name: Compose raw intent packet from example manifest
         run: python tools/raw_intent_packet.py compose packets/examples/raw_intent_packet_example.json --output-dir /tmp/raw-intent-packet
+
+      - name: Lint example agent refinement proposal
+        run: python tools/agent_refinement_proposal.py lint packets/examples/agent_refinement_proposal_example.json
+
+      - name: Compose agent refinement proposal from example manifest
+        run: python tools/agent_refinement_proposal.py compose packets/examples/agent_refinement_proposal_example.json --output-dir /tmp/agent-refinement-proposal

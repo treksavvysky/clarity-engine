@@ -6,6 +6,16 @@
   - `pcp_lite.schema.json` — Extended with optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
   - `tools/compose_packet.py` — Renders all schema fields including the shipped optional fields
   - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
+- `agent_refinement_proposal.schema.json` and
+  `tools/agent_refinement_proposal.py` define a separate v1 proposal contract
+  for source-bound agent analysis awaiting human review.
+- Agent Refinement Proposal lint and compose are side-effect-free and emit
+  canonical `manifest.json`, `proposal.md`, and `proposal_sha` artifacts.
+- The canonical Eidolon proposal identity is
+  `15e7418c61243da509799ee51298b41a672e366953ef3b0696707ed6713b76c6`.
+- The proposal contract cannot encode Raw Intent lifecycle mutation, readiness,
+  approval, promotion, enqueue, or execution. Proposal persistence, HTTP, MCP,
+  and browser review are not yet shipped.
 
 ## API Implementation State
 - A FastAPI application at `app/main.py` (v0.5.0) exposes:

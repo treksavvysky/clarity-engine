@@ -25,6 +25,7 @@ These files define how the project operates and must stay in sync.
 - `CONTEXT_PACKET_TEMPLATE.md` — paste-ready Context Packet template aligned with the schema.
 - `pcp_lite.schema.json` — machine-readable Project Context Protocol lite (PCP-lite) contract for packet manifests.
 - `raw_intent_packet.schema.json` — provenance-preserving contract for ungrounded human intent.
+- `agent_refinement_proposal.schema.json` — source-bound agent analysis awaiting human review.
 - `packets/examples/context_packet_example.json` — minimal manifest example conforming to the PCP-lite schema.
 - `packets/examples/raw_intent_packet_example.json` — canonical Raw Intent Packet example.
 - `CLAUDE.md` — project guidance for Claude Code and the commit-per-substage workflow.
@@ -144,6 +145,12 @@ python tools/raw_intent_packet.py lint \
 python tools/raw_intent_packet.py compose \
   packets/examples/raw_intent_packet_example.json \
   --output-dir /tmp/raw-intent-packet
+
+python tools/agent_refinement_proposal.py lint \
+  packets/examples/agent_refinement_proposal_example.json
+python tools/agent_refinement_proposal.py compose \
+  packets/examples/agent_refinement_proposal_example.json \
+  --output-dir /tmp/agent-refinement-proposal
 ```
 
 ## Raw Intent Packet Contract
@@ -155,6 +162,18 @@ string is never trimmed or rewritten. Deterministic composition emits
 
 See `docs/RAW_INTENT_PACKET.md` for field semantics, lifecycle values, identity
 rules, persistence behavior, HTTP operations, and current exclusions.
+
+## Agent Refinement Proposal Contract
+
+Agent Refinement Proposals are deterministic, source-bound analysis records
+that an agent can prepare for human review. They contain sourced grounding,
+stable-ID clarification questions, and unresolved gaps tied to one exact Raw
+Intent SHA. They do not mutate Raw Intent state or grant readiness, approval,
+promotion, enqueue, or execution authority.
+
+See `docs/AGENT_REFINEMENT_PROPOSAL.md`. The current contract and CLI are
+side-effect-free; proposal persistence, HTTP, MCP, and browser review remain
+future cycles.
 
 ### Raw Intent HTTP API
 
