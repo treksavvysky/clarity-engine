@@ -46,6 +46,24 @@
   button.primary:hover, button.secondary:hover { opacity: 0.9; }
   .empty { color: var(--muted); font-style: italic; padding: 24px; text-align: center; }
   .error { color: var(--removed); }
+  .intent-list-item { display: grid; gap: 7px; }
+  .intent-list-meta, .badge-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .badge { display: inline-flex; align-items: center; min-height: 22px; padding: 2px 7px; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); font-size: 11px; }
+  .badge.status { color: var(--fg); border-color: var(--accent); }
+  .badge.ready { color: var(--added); border-color: var(--added); }
+  .detail-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr); gap: 16px; }
+  .detail-section { min-width: 0; }
+  .detail-section h3 { margin: 18px 0 8px; font-size: 13px; color: var(--muted); }
+  .structured-list { display: grid; gap: 8px; }
+  .structured-entry { background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 10px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+  .raw-intent-text { white-space: pre-wrap; }
+  @media (max-width: 820px) {
+    header { align-items: flex-start; flex-direction: column; gap: 4px; }
+    nav { overflow-x: auto; }
+    nav button { flex: 0 0 auto; }
+    main { padding: 14px; }
+    .row, .detail-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  }
 </style>
 </head>
 <body>
@@ -55,6 +73,7 @@
 </header>
 <nav>
   <button class="tab-btn active" data-tab="browser">Browser</button>
+  <button class="tab-btn" data-tab="raw-intents">Raw Intents</button>
   <button class="tab-btn" data-tab="intent">Intent</button>
   <button class="tab-btn" data-tab="diff">Diff</button>
   <button class="tab-btn" data-tab="editor">Editor</button>
@@ -69,6 +88,19 @@
       <div class="panel">
         <h2>Detail</h2>
         <div id="detail"><div class="empty">Select a packet to view its manifest and markdown.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-raw-intents" class="tab">
+    <div class="row">
+      <div class="panel">
+        <h2>Raw Intent Revisions <button class="secondary" id="intent-refresh" style="float:right;padding:4px 10px" aria-label="Refresh Raw Intents">↻</button></h2>
+        <ul class="packet-list" id="intent-list"><li class="empty">Loading…</li></ul>
+      </div>
+      <div class="panel">
+        <h2>Raw Intent Detail</h2>
+        <div id="raw-intent-detail"><div class="empty">Select a Raw Intent revision to inspect its record, lineage, and linked missions.</div></div>
       </div>
     </div>
   </section>
@@ -166,6 +198,7 @@ function tabSwitcher() {
 }
 
 let selectedSha = null;
+let selectedIntentSha = null;
 let intentDraftManifest = null;
 
 async function loadPackets() {
@@ -206,6 +239,140 @@ async function selectPacket(sha) {
     $('#detail').innerHTML = `<div class="error">Load failed: ${err.status || err}</div>`;
   }
   loadPackets();
+}
+
+function badge(label, value, className = '') {
+  return `<span class="badge ${className}">${escapeHtml(label)}: ${escapeHtml(value)}</span>`;
+}
+
+async function loadIntents() {
+  const list = $('#intent-list');
+  list.innerHTML = '<li class="empty">Loading…</li>';
+  try {
+    const { intents } = await api('GET', '/intents');
+    if (!intents.length) {
+      selectedIntentSha = null;
+      list.innerHTML = '<li class="empty">No Raw Intent revisions registered yet.</li>';
+      $('#raw-intent-detail').innerHTML = '<div class="empty">Registered Raw Intent revisions will appear here.</div>';
+      return;
+    }
+    if (!intents.some(item => item.intent_sha === selectedIntentSha)) selectedIntentSha = null;
+    list.innerHTML = '';
+    for (const item of intents) {
+      const li = document.createElement('li');
+      if (item.intent_sha === selectedIntentSha) li.classList.add('selected');
+      li.innerHTML = `
+        <div class="intent-list-item">
+          <div class="intent-list-meta">
+            <span class="sha">${item.intent_sha.slice(0, 16)}…</span>
+            <span class="badge status">${escapeHtml(item.status)}</span>
+          </div>
+          <div class="mission">${escapeHtml(item.raw_intent_preview)}</div>
+          <div class="badge-row">
+            ${badge('questions', item.clarifications_needed_count)}
+            ${badge('gaps', item.unresolved_gaps_count)}
+            ${item.parent_intent_sha ? '<span class="badge">revision</span>' : '<span class="badge">root</span>'}
+          </div>
+        </div>`;
+      li.addEventListener('click', () => selectIntent(item.intent_sha));
+      list.appendChild(li);
+    }
+  } catch (err) {
+    list.innerHTML = `<li class="empty error">Failed to load Raw Intents: ${escapeHtml(err.status || err)}</li>`;
+  }
+}
+
+function renderStringList(items, emptyText = 'None recorded.') {
+  if (!Array.isArray(items) || !items.length) return `<div class="empty">${escapeHtml(emptyText)}</div>`;
+  return `<div class="structured-list">${items.map(item => `<div class="structured-entry">${escapeHtml(item)}</div>`).join('')}</div>`;
+}
+
+function renderGrounding(entries) {
+  if (!Array.isArray(entries) || !entries.length) return '<div class="empty">No structured grounding entries.</div>';
+  return `<div class="structured-list">${entries.map(entry => `
+    <div class="structured-entry">
+      <div class="badge-row"><span class="badge ${entry.kind === 'verified_fact' ? 'ready' : ''}">${escapeHtml(entry.kind)}</span></div>
+      <div style="margin-top:7px">${escapeHtml(entry.statement)}</div>
+      <div class="sha" style="margin-top:7px">${escapeHtml((entry.sources || []).join(' · '))}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderClarifications(entries) {
+  if (!Array.isArray(entries) || !entries.length) return '<div class="empty">No structured clarifications.</div>';
+  return `<div class="structured-list">${entries.map(entry => `
+    <div class="structured-entry">
+      <div class="badge-row"><span class="badge">${escapeHtml(entry.id)}</span><span class="badge ${entry.status === 'answered' ? 'ready' : 'status'}">${escapeHtml(entry.status)}</span></div>
+      <div style="margin-top:7px">${escapeHtml(entry.question)}</div>
+      ${entry.answer ? `<div style="margin-top:7px;color:var(--added)">${escapeHtml(entry.answer)}</div>` : ''}
+    </div>`).join('')}</div>`;
+}
+
+function renderLineage(ancestors) {
+  if (!ancestors.length) return '<div class="empty">This is a root revision.</div>';
+  return `<div class="structured-list">${ancestors.map((ancestor, index) => `
+    <div class="structured-entry">
+      <div class="sha">${escapeHtml(ancestor.intent_sha)}</div>
+      <div class="badge-row" style="margin-top:7px"><span class="badge">${index === 0 ? 'parent' : 'ancestor ' + (index + 1)}</span><span class="badge status">${escapeHtml(ancestor.status)}</span></div>
+    </div>`).join('')}</div>`;
+}
+
+function renderLinkedMissions(missions) {
+  if (!missions.length) return '<div class="empty">No Mission Packets linked to this revision.</div>';
+  return `<div class="structured-list">${missions.map(item => `
+    <div class="structured-entry">
+      <div>${escapeHtml(item.mission || '(no mission)')}</div>
+      <div class="sha" style="margin-top:7px">${escapeHtml(item.context_sha)}</div>
+      <div class="badge-row" style="margin-top:7px">
+        <span class="badge ready">approved by ${escapeHtml(item.approval.approved_by)}</span>
+        <span class="badge">${item.grounding_references.length} source mappings</span>
+      </div>
+      <div class="sha" style="margin-top:7px">promoted revision ${escapeHtml(item.promoted_intent_sha)}</div>
+    </div>`).join('')}</div>`;
+}
+
+async function selectIntent(intentSha) {
+  selectedIntentSha = intentSha;
+  $('#raw-intent-detail').innerHTML = '<div class="empty">Loading verified Raw Intent record…</div>';
+  loadIntents();
+  try {
+    const [record, lineage, linked] = await Promise.all([
+      api('GET', '/intents/' + intentSha),
+      api('GET', '/intents/' + intentSha + '/ancestors'),
+      api('GET', '/intents/' + intentSha + '/missions'),
+    ]);
+    const manifest = record.manifest;
+    const readyClass = manifest.status === 'ready_for_mission' || manifest.status === 'promoted' ? 'ready' : '';
+    $('#raw-intent-detail').innerHTML = `
+      <div class="badge-row">
+        <span class="badge status ${readyClass}">${escapeHtml(manifest.status)}</span>
+        <span class="badge">${escapeHtml(manifest.provenance.source)}</span>
+        ${manifest.parent_intent_sha ? '<span class="badge">child revision</span>' : '<span class="badge">root revision</span>'}
+      </div>
+      <div class="sha" style="margin-top:9px">${escapeHtml(record.intent_sha)}</div>
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h3>Raw Intent</h3>
+          <pre class="raw-intent-text">${escapeHtml(manifest.raw_intent)}</pre>
+          <h3>Human Context</h3>${renderStringList(manifest.human_context)}
+          <h3>Constraints</h3>${renderStringList(manifest.constraints)}
+          <h3>Desired Direction</h3>${manifest.desired_direction ? `<div class="structured-entry">${escapeHtml(manifest.desired_direction)}</div>` : '<div class="empty">None recorded.</div>'}
+          <h3>Grounding</h3>${renderGrounding(manifest.grounding_entries)}
+          <h3>Clarifications</h3>${renderClarifications(manifest.clarifications)}
+          <h3>Unresolved Gaps</h3>${renderStringList(manifest.unresolved_gaps)}
+        </div>
+        <div class="detail-section">
+          <h3>Provenance</h3><pre>${escapeHtml(JSON.stringify(manifest.provenance, null, 2))}</pre>
+          <h3>Assumptions</h3>${renderStringList(manifest.assumptions)}
+          <h3>Related Projects</h3>${renderStringList(manifest.related_projects)}
+          <h3>Context Sources</h3>${renderStringList(manifest.context_sources)}
+          <h3>Lineage</h3>${renderLineage(lineage.ancestors)}
+          <h3>Linked Mission Packets</h3>${renderLinkedMissions(linked.missions)}
+        </div>
+      </div>`;
+  } catch (err) {
+    const message = err.body ? JSON.stringify(err.body, null, 2) : (err.message || String(err));
+    $('#raw-intent-detail').innerHTML = `<pre class="error">${escapeHtml(message)}</pre>`;
+  }
 }
 
 function escapeHtml(s) {
@@ -406,6 +573,7 @@ async function editorAction(label, method, path) {
 
 tabSwitcher();
 $('#refresh').addEventListener('click', loadPackets);
+$('#intent-refresh').addEventListener('click', loadIntents);
 $('#intent-load-example').addEventListener('click', () => {
   $('#intent-raw').value = 'I should work on code-server.';
   $('#intent-context').value = 'code-server is part of the active dev environment.';
@@ -423,6 +591,7 @@ $('#editor-compose').addEventListener('click', () => editorAction('Composing', '
 $('#editor-register').addEventListener('click', () => editorAction('Registering', 'POST', '/packets/register'));
 $('#editor-enqueue').addEventListener('click', () => editorAction('Enqueuing', 'POST', '/packets/enqueue'));
 loadPackets();
+loadIntents();
 </script>
 </body>
 </html>

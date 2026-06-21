@@ -318,6 +318,13 @@ The response includes `{ ok, errors, warnings, manifest, packet_md, context_sha,
 
 The browser UI also exposes this flow in the **Intent** tab: write raw intent, add context/constraints/route, draft the mission packet, then register the reviewed draft.
 
+The **Raw Intents** tab is a separate read-only workspace for the registered
+Raw Intent workflow. It lists immutable revisions and displays the selected
+record's verbatim intent, provenance, context, constraints, grounding,
+clarifications, unresolved gaps, ancestry, and linked Mission Packets. Grounding,
+clarification, readiness, approval, and promotion controls are not yet exposed
+in the browser.
+
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
 - No outbound network calls. `callback_url` is transport-only data for downstream orchestrators.
