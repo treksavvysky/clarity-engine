@@ -13,6 +13,28 @@ def test_root_serves_ui_html(client):
     assert "/intents/' + intentSha" in response.text
     assert "'/ancestors'" in response.text
     assert "'/missions'" in response.text
+    assert 'id="intent-workflow-panel"' in response.text
+    assert 'id="grounding-kind"' in response.text
+    assert 'id="grounding-statement"' in response.text
+    assert 'id="grounding-sources"' in response.text
+    assert 'id="grounding-gaps"' in response.text
+    assert 'id="grounding-submit"' in response.text
+    assert 'id="clarification-id"' in response.text
+    assert 'id="clarification-question"' in response.text
+    assert 'id="clarification-ask"' in response.text
+    assert 'id="clarification-answer-id"' in response.text
+    assert 'id="clarification-answer"' in response.text
+    assert 'id="clarification-answer-submit"' in response.text
+    assert 'id="readiness-checklist"' in response.text
+    assert 'id="intent-ready-submit"' in response.text
+    assert 'id="intent-workflow-status"' in response.text
+    assert "/grounding`" in response.text
+    assert "/clarifications`" in response.text
+    assert "status: 'ready_for_mission'" in response.text
+    assert "unresolved_gaps: []" in response.text
+    assert "captureWorkflowDraft()" in response.text
+    assert "clearWorkflowDraft(clearedGroup)" in response.text
+    assert "It does not approve, promote, register, or execute" in response.text
     assert 'data-tab="intent"' in response.text
     assert 'id="intent-raw"' in response.text
     assert "/intents/draft" in response.text

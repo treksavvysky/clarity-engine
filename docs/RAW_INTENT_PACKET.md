@@ -129,6 +129,13 @@ Grounding and clarification operations create child revisions. They accept
 strict request shapes and cannot change original intent, provenance, human
 context, constraints, or lineage directly.
 
+The browser's **Raw Intents** workspace exposes these operations in a selected
+revision's Workflow Actions panel. It can append one sourced grounding entry,
+replace unresolved gaps, ask or answer one stable-ID clarification, and request
+readiness. Each successful action follows the returned immutable child
+revision. Terminal `promoted` and `abandoned` revisions do not expose active
+mutation controls.
+
 ## Readiness
 
 A revision may enter `ready_for_mission` only when:
@@ -138,7 +145,8 @@ A revision may enter `ready_for_mission` only when:
 - `unresolved_gaps` is absent or empty.
 
 The same readiness check applies to direct `/intents/register` calls. Readiness
-does not imply human approval or create a Mission Packet.
+does not imply human approval or create a Mission Packet. The browser displays
+these rules as an advisory checklist; backend validation remains authoritative.
 
 ## Promotion and Mission Links
 
@@ -182,7 +190,7 @@ Read-only stdio MCP access is available through:
 - `diff_intents_tool`
 
 These tools delegate to the same registry and domain functions as HTTP. They do
-not expose Raw Intent mutation or promotion. Authentication,
-external-context proxying, and UI changes remain deferred. The existing
-`/intents/draft` endpoint remains unchanged and continues to produce a
+not expose Raw Intent mutation or promotion. Authentication, external-context
+proxying, browser promotion controls, and MCP mutation remain deferred. The
+existing `/intents/draft` endpoint remains unchanged and continues to produce a
 side-effect-free PCP-lite Mission Packet candidate.

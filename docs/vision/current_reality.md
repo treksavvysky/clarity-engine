@@ -51,10 +51,14 @@
 - Compose and lint endpoints are side-effect-free; register and enqueue write to the registry.
 - No authentication, secrets handling, or outbound network calls are present.
 - The browser UI is a static `ui/index.html` file mounted by FastAPI.
-- The browser UI includes a read-only Raw Intents workspace that lists
-  registered revisions and renders complete records, ancestry, and linked
-  Mission Packets. Raw Intent mutation and promotion controls are not yet
-  exposed in the browser.
+- The browser UI includes a Raw Intents workspace that lists registered
+  revisions and renders complete records, ancestry, and linked Mission Packets.
+  Its Workflow Actions panel creates immutable grounding and clarification
+  children, follows successful child revisions, shows readiness prerequisites,
+  and requests `ready_for_mission` through the existing HTTP endpoint.
+- Terminal Raw Intent revisions expose no active mutation controls. Browser
+  readiness does not approve, promote, register, enqueue, or execute a Mission
+  Packet; promotion controls remain outside the workspace.
 - Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 
 ## Stage-01.5 Documentation State

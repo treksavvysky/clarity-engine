@@ -190,7 +190,7 @@ documented lifecycle. Corrupt records and broken lineage return explicit errors.
 Grounding appends sourced entries and creates a new immutable child:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/grounding \
+curl -s -X POST http://127.0.0.1:8010/intents/<intent_sha>/grounding \
   -H "Content-Type: application/json" \
   -d '{
     "entries": [{
@@ -206,7 +206,7 @@ curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/grounding \
 Clarification questions use stable IDs; answers target those IDs:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/clarifications \
+curl -s -X POST http://127.0.0.1:8010/intents/<intent_sha>/clarifications \
   -H "Content-Type: application/json" \
   -d '{
     "questions": [{
@@ -238,7 +238,7 @@ PCP-lite candidate, explicit human approval, and one verified source location
 for every candidate `current_reality` and `constraints` entry:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/promote \
+curl -s -X POST http://127.0.0.1:8010/intents/<intent_sha>/promote \
   -H "Content-Type: application/json" \
   -d '{
     "mission_packet": {
@@ -318,12 +318,13 @@ The response includes `{ ok, errors, warnings, manifest, packet_md, context_sha,
 
 The browser UI also exposes this flow in the **Intent** tab: write raw intent, add context/constraints/route, draft the mission packet, then register the reviewed draft.
 
-The **Raw Intents** tab is a separate read-only workspace for the registered
-Raw Intent workflow. It lists immutable revisions and displays the selected
+The **Raw Intents** tab lists immutable revisions and displays the selected
 record's verbatim intent, provenance, context, constraints, grounding,
-clarifications, unresolved gaps, ancestry, and linked Mission Packets. Grounding,
-clarification, readiness, approval, and promotion controls are not yet exposed
-in the browser.
+clarifications, unresolved gaps, ancestry, and linked Mission Packets. Its
+workflow panel can create sourced grounding revisions, ask or answer stable-ID
+clarifications, and request `ready_for_mission`. Successful actions select the
+new child revision automatically. Readiness remains separate from approval and
+promotion; those controls are not exposed in this workspace.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.

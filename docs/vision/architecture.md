@@ -18,8 +18,10 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 - **UI:** `ui/index.html` is a single static page with Mission Packet Browser,
   Raw Intents, legacy Intent Draft, Diff, and Editor tabs, served by FastAPI.
   The Raw Intents tab reads revision summaries, complete records, ancestry, and
-  linked Mission Packets from the shared HTTP APIs. No Node toolchain. A
-  framework replacement remains a separately scoped platform decision.
+  linked Mission Packets from the shared HTTP APIs. It also creates immutable
+  grounding and clarification revisions and requests readiness through the
+  existing HTTP workflow endpoints. No Node toolchain. A framework replacement
+  remains a separately scoped platform decision.
 
 ## Operating Model
 1. Incoming manifests are validated against `pcp_lite.schema.json`.
@@ -40,7 +42,9 @@ Raw Intent revisions follow a parallel pre-mission flow:
 6. HTTP grounding and clarification operations append structured material by
    creating new revisions. A ready revision requires sourced verified facts,
    no open clarification records, and no unresolved gaps.
-7. HTTP promotion validates explicit approval and complete grounding references,
+7. The Raw Intents browser follows each successful child revision and presents
+   backend-derived readiness feedback without treating readiness as approval.
+8. HTTP promotion validates explicit approval and complete grounding references,
    then registers the Mission Packet, authoritative link, and terminal promoted
    Raw Intent revision. It never enqueues or executes work.
 
