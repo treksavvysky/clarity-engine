@@ -48,6 +48,71 @@ def test_compose_is_deterministic_with_golden_identity():
     assert first["intent_sha"] == GOLDEN_INTENT_SHA
 
 
+def test_structured_fields_validate_and_render():
+    manifest = load_example()
+    manifest["grounding_entries"] = [
+        {
+            "kind": "verified_fact",
+            "statement": "The repository contains app/main.py.",
+            "sources": ["repo:app/main.py"],
+        }
+    ]
+    manifest["clarifications"] = [
+        {
+            "id": "deployment-owner",
+            "question": "Who owns deployment?",
+            "status": "answered",
+            "answer": "The platform maintainer.",
+        }
+    ]
+
+    result = raw_intent_packet.compose_manifest(manifest)
+
+    assert "## Grounding Entries" in result["intent_md"]
+    assert "**verified_fact:** The repository contains app/main.py." in result["intent_md"]
+    assert "Sources: repo:app/main.py" in result["intent_md"]
+    assert "## Clarifications" in result["intent_md"]
+    assert "**deployment-owner [answered]:** Who owns deployment?" in result["intent_md"]
+    assert "Answer: The platform maintainer." in result["intent_md"]
+
+
+def test_clarification_semantics_reject_duplicates_and_answer_mismatch():
+    manifest = load_example()
+    manifest["clarifications"] = [
+        {
+            "id": "owner",
+            "question": "Who owns this?",
+            "status": "open",
+            "answer": "Unexpected.",
+        },
+        {
+            "id": "owner",
+            "question": "Duplicate.",
+            "status": "answered",
+        },
+    ]
+
+    errors = raw_intent_packet.validate_manifest(manifest)
+
+    assert "$.clarifications[0].answer is not allowed when status is open." in errors
+    assert "$.clarifications[1].id must be unique." in errors
+    assert (
+        "$.clarifications[1].answer is required when status is answered." in errors
+    )
+
+
+def test_grounding_entry_requires_sources():
+    manifest = load_example()
+    manifest["grounding_entries"] = [
+        {"kind": "verified_fact", "statement": "A claim.", "sources": []}
+    ]
+
+    assert any(
+        error.startswith("$.grounding_entries[0].sources")
+        for error in raw_intent_packet.validate_manifest(manifest)
+    )
+
+
 def test_status_provenance_and_parent_change_identity():
     manifest = load_example()
     baseline = raw_intent_packet.compose_manifest(manifest)["intent_sha"]

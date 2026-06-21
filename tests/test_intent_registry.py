@@ -27,6 +27,14 @@ def child_of(parent_sha, root_manifest, status):
     child = deepcopy(root_manifest)
     child["status"] = status
     child["parent_intent_sha"] = parent_sha
+    if status == "ready_for_mission":
+        child["grounding_entries"] = [
+            {
+                "kind": "verified_fact",
+                "statement": "The repository contains app/main.py.",
+                "sources": ["repo:app/main.py"],
+            }
+        ]
     return child
 
 

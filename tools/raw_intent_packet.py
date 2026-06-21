@@ -128,6 +128,57 @@ def validate_manifest(
         raw_intent = manifest.get("raw_intent")
         if isinstance(raw_intent, str) and not raw_intent.strip():
             errors.append("$.raw_intent must contain non-whitespace content.")
+        clarifications = manifest.get("clarifications")
+        if isinstance(clarifications, list):
+            seen_ids: set[str] = set()
+            for index, clarification in enumerate(clarifications):
+                if not isinstance(clarification, dict):
+                    continue
+                clarification_id = clarification.get("id")
+                if isinstance(clarification_id, str):
+                    if clarification_id in seen_ids:
+                        errors.append(
+                            f"$.clarifications[{index}].id must be unique."
+                        )
+                    seen_ids.add(clarification_id)
+                status = clarification.get("status")
+                has_answer = "answer" in clarification
+                if status == "answered" and not has_answer:
+                    errors.append(
+                        f"$.clarifications[{index}].answer is required when status is answered."
+                    )
+                if status == "open" and has_answer:
+                    errors.append(
+                        f"$.clarifications[{index}].answer is not allowed when status is open."
+                    )
+                question = clarification.get("question")
+                if isinstance(question, str) and not question.strip():
+                    errors.append(
+                        f"$.clarifications[{index}].question must contain non-whitespace content."
+                    )
+                answer = clarification.get("answer")
+                if isinstance(answer, str) and not answer.strip():
+                    errors.append(
+                        f"$.clarifications[{index}].answer must contain non-whitespace content."
+                    )
+        grounding_entries = manifest.get("grounding_entries")
+        if isinstance(grounding_entries, list):
+            for index, entry in enumerate(grounding_entries):
+                if not isinstance(entry, dict):
+                    continue
+                statement = entry.get("statement")
+                if isinstance(statement, str) and not statement.strip():
+                    errors.append(
+                        f"$.grounding_entries[{index}].statement must contain non-whitespace content."
+                    )
+                sources = entry.get("sources")
+                if isinstance(sources, list):
+                    for source_index, source in enumerate(sources):
+                        if isinstance(source, str) and not source.strip():
+                            errors.append(
+                                f"$.grounding_entries[{index}].sources[{source_index}] "
+                                "must contain non-whitespace content."
+                            )
     return errors
 
 
@@ -145,6 +196,30 @@ def _render_list(title: str, values: Any) -> list[str]:
         return []
     lines = [f"## {title}", ""]
     lines.extend(f"- {value}" for value in values)
+    lines.append("")
+    return lines
+
+
+def _render_grounding_entries(values: Any) -> list[str]:
+    if not isinstance(values, list) or not values:
+        return []
+    lines = ["## Grounding Entries", ""]
+    for entry in values:
+        sources = ", ".join(entry["sources"])
+        lines.append(f"- **{entry['kind']}:** {entry['statement']}")
+        lines.append(f"  - Sources: {sources}")
+    lines.append("")
+    return lines
+
+
+def _render_clarifications(values: Any) -> list[str]:
+    if not isinstance(values, list) or not values:
+        return []
+    lines = ["## Clarifications", ""]
+    for entry in values:
+        lines.append(f"- **{entry['id']} [{entry['status']}]:** {entry['question']}")
+        if entry.get("answer"):
+            lines.append(f"  - Answer: {entry['answer']}")
     lines.append("")
     return lines
 
@@ -189,6 +264,8 @@ def render_intent_md(manifest: dict[str, Any]) -> str:
             lines.extend([f"## {title}", "", value, ""])
         else:
             lines.extend(_render_list(title, value))
+    lines.extend(_render_grounding_entries(manifest.get("grounding_entries")))
+    lines.extend(_render_clarifications(manifest.get("clarifications")))
     return "\n".join(lines)
 
 

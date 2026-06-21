@@ -97,6 +97,20 @@
     "unresolved_gaps": {
       "$ref": "#/definitions/nonEmptyStringArray"
     },
+    "grounding_entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/groundingEntry"
+      },
+      "minItems": 1
+    },
+    "clarifications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/clarificationEntry"
+      },
+      "minItems": 1
+    },
     "parent_intent_sha": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
@@ -110,6 +124,62 @@
         "minLength": 1
       },
       "minItems": 1
+    },
+    "groundingEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "statement",
+        "sources"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "verified_fact",
+            "rejected_assumption"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sources": {
+          "$ref": "#/definitions/nonEmptyStringArray"
+        }
+      }
+    },
+    "clarificationEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "question",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "answered"
+          ]
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }

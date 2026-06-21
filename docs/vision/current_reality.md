@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-07.2 + Raw Intent Persistence/API
+# Current Reality (Facts Only) — Stage-07.2 + Grounded Raw Intent Workflow
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -8,7 +8,7 @@
   - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
 
 ## API Implementation State
-- A FastAPI application at `app/main.py` (v0.3.0) exposes:
+- A FastAPI application at `app/main.py` (v0.4.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
   - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
@@ -204,11 +204,20 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
 - FastAPI exposes `POST /intents/lint`, `POST /intents/compose`,
   `POST /intents/register`, `GET /intents`, `GET /intents/{intent_sha}`,
   `GET /intents/{intent_sha}/ancestors`, and `POST /intents/diff`.
+- FastAPI exposes `POST /intents/{intent_sha}/grounding` and
+  `POST /intents/{intent_sha}/clarifications`; both create immutable child
+  revisions and leave parents unchanged.
+- Structured grounding entries carry a kind, statement, and source references.
+- Structured clarification entries carry a stable ID, question, open/answered
+  status, and answer when resolved.
+- `ready_for_mission` requires a sourced structured verified fact, no open
+  structured clarifications, and no unresolved gaps. The check applies to every
+  registration path.
 - Lint and compose are side-effect-free; registration is explicit, append-only,
   atomic, and idempotent.
 - Docker Compose independently bind mounts `./packets/intents` with the same
   configurable UID/GID used by the Mission Packet registry.
-- Raw Intent MCP mutation, promotion, mission-link records, external-context
-  proxying, and UI migration are not implemented.
+- Raw Intent MCP remains read-only. Promotion, approval, mission-link records,
+  external-context proxying, and UI migration are not implemented.
 - Existing PCP-lite behavior, packet hashes, registry paths, MCP tools, and
   `/intents/draft` behavior remain unchanged.

@@ -12,9 +12,13 @@ Core operations include:
 - `POST /intents/lint`, `/intents/compose`, and `/intents/register`
 - `GET /intents`, `/intents/{intent_sha}`, and ancestry
 - `POST /intents/diff`
+- `POST /intents/{intent_sha}/grounding`
+- `POST /intents/{intent_sha}/clarifications`
 
 `app/registry.py` stores Mission Packets. `app/intent_registry.py` independently
 stores immutable Raw Intent Packet revisions and enforces lifecycle lineage.
+`app/intent_workflow.py` builds immutable grounding and clarification revisions
+and centralizes `ready_for_mission` checks.
 
 `app/mcp_server.py` exposes 12 stdio tools: eight existing Mission Packet tools
 and four read-only Raw Intent tools (`list_intents_tool`, `get_intent_tool`,

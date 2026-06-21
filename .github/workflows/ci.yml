@@ -37,6 +37,9 @@ jobs:
       - name: Run MCP HTTP parity tests
         run: pytest -q tests/test_mcp_server.py
 
+      - name: Run grounding and clarification workflow tests
+        run: pytest -q tests/test_intent_workflow.py tests/test_app_intent_workflow_endpoints.py
+
       - name: Lint example context packet manifest
         run: python tools/lint_packet.py packets/examples/context_packet_example.json
 

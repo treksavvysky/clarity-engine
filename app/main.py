@@ -9,14 +9,14 @@ from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import intent_registry, registry
+from app import intent_registry, intent_workflow, registry
 from tools import compose_packet, lint_packet, raw_intent_packet
 
 UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 app = FastAPI(
     title="Clarity Engine",
-    version="0.3.0",
+    version="0.4.0",
     description=(
         "Intent and context contract service for human-AI workflows. "
         "Preserves ungrounded thought as Raw Intent Packets and composes grounded "
@@ -393,6 +393,42 @@ def diff_intents_endpoint(body: Any = Body(...)) -> dict[str, Any]:
     except intent_registry.IntentRegistryError as exc:
         raise _intent_error(exc) from exc
     return intent_registry.diff_manifests(left, right)
+
+
+@app.post(
+    "/intents/{intent_sha}/grounding",
+    tags=["intents"],
+    summary="Create an immutable grounding revision",
+    description=(
+        "Appends source-attributed grounding entries, optionally replaces unresolved "
+        "gaps, and registers a new child revision. The parent is never modified."
+    ),
+)
+def create_grounding_revision_endpoint(
+    intent_sha: str, body: Any = Body(...)
+) -> dict[str, Any]:
+    try:
+        return intent_workflow.register_grounding_revision(intent_sha, body)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+
+
+@app.post(
+    "/intents/{intent_sha}/clarifications",
+    tags=["intents"],
+    summary="Create an immutable clarification revision",
+    description=(
+        "Appends open questions or answers existing questions by stable ID, then "
+        "registers a new child revision. The parent is never modified."
+    ),
+)
+def create_clarification_revision_endpoint(
+    intent_sha: str, body: Any = Body(...)
+) -> dict[str, Any]:
+    try:
+        return intent_workflow.register_clarification_revision(intent_sha, body)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
 
 
 @app.post(

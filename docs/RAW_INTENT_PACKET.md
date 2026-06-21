@@ -21,6 +21,37 @@ Optional fields separate human-supplied context, constraints, desired direction,
 assumptions, related projects, clarification needs, and context sources from
 derived grounding material.
 
+Structured grounding uses:
+
+```json
+{
+  "grounding_entries": [{
+    "kind": "verified_fact",
+    "statement": "The repository contains app/main.py.",
+    "sources": ["repo:app/main.py"]
+  }]
+}
+```
+
+`kind` is `observation`, `verified_fact`, or `rejected_assumption`. Every entry
+requires at least one source reference.
+
+Structured clarification records use stable IDs:
+
+```json
+{
+  "clarifications": [{
+    "id": "deployment-owner",
+    "question": "Who owns deployment?",
+    "status": "answered",
+    "answer": "The platform maintainer."
+  }]
+}
+```
+
+Open records omit `answer`; answered records require it. IDs are unique within
+the packet.
+
 Raw Intent Packets do not contain a mission, factual Current Reality, acceptance
 criteria, execution permissions, or enqueue instructions.
 
@@ -87,8 +118,25 @@ HTTP operations:
 - `GET /intents/{intent_sha}`
 - `GET /intents/{intent_sha}/ancestors`
 - `POST /intents/diff`
+- `POST /intents/{intent_sha}/grounding`
+- `POST /intents/{intent_sha}/clarifications`
 
 Lint and compose remain side-effect-free.
+
+Grounding and clarification operations create child revisions. They accept
+strict request shapes and cannot change original intent, provenance, human
+context, constraints, or lineage directly.
+
+## Readiness
+
+A revision may enter `ready_for_mission` only when:
+
+- at least one structured grounding entry is a sourced `verified_fact`;
+- every structured clarification is answered;
+- `unresolved_gaps` is absent or empty.
+
+The same readiness check applies to direct `/intents/register` calls. Readiness
+does not imply human approval or create a Mission Packet.
 
 ## Current Boundary
 
@@ -100,7 +148,8 @@ Read-only stdio MCP access is available through:
 - `diff_intents_tool`
 
 These tools delegate to the same registry and domain functions as HTTP. They do
-not add Raw Intent mutation, promotion into Mission Packets, intent-to-mission
-link records, external-context proxying, or UI changes. The existing
+not expose Raw Intent mutation. Promotion into Mission Packets,
+intent-to-mission link records, external-context proxying, and UI changes remain
+deferred. The existing
 `/intents/draft` endpoint remains unchanged and continues to produce a
 side-effect-free PCP-lite Mission Packet candidate.

@@ -240,6 +240,29 @@ def test_intent_lineage_tool_exposes_broken_lineage_code():
     assert "broken_lineage" in error
 
 
+def test_get_intent_tool_exposes_structured_grounding_fields(client):
+    manifest = _intent_example()
+    root_sha = client.post("/intents/register", json=manifest).json()["intent_sha"]
+    grounded = client.post(
+        f"/intents/{root_sha}/grounding",
+        json={
+            "entries": [
+                {
+                    "kind": "verified_fact",
+                    "statement": "The repository contains app/main.py.",
+                    "sources": ["repo:app/main.py"],
+                }
+            ]
+        },
+    ).json()
+
+    mcp_body = _call("get_intent_tool", {"intent_sha": grounded["intent_sha"]})
+    assert mcp_body == client.get(f"/intents/{grounded['intent_sha']}").json()
+    assert mcp_body["manifest"]["grounding_entries"][0]["sources"] == [
+        "repo:app/main.py"
+    ]
+
+
 def test_server_lists_expected_tools():
     tools = _run(mcp_server.mcp.list_tools())
     names = {t.name for t in tools}

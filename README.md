@@ -15,6 +15,7 @@ All documented stages through Stage-07.2 are shipped:
 | 06 | Static browser UI at `/` with Browser / Intent / Diff / Editor tabs |
 | 07 | Raw-intent draft intake (`POST /intents/draft`) returning reviewable PCP-lite manifests without registry writes |
 | Raw Intent | Separate schema, deterministic tooling, immutable registry, lineage, diff, and HTTP access |
+| Grounding | Source-attributed grounding, traceable clarification revisions, and readiness gates |
 
 See `docs/vision/current_reality.md` for the full fact sheet.
 
@@ -183,6 +184,52 @@ Raw Intent Packet manifest. Registered revisions live under
 Registration enforces immutable lineage: roots begin as `captured`, child
 revisions must preserve `raw_intent` exactly, and status changes must follow the
 documented lifecycle. Corrupt records and broken lineage return explicit errors.
+
+### Grounding and clarification revisions
+
+Grounding appends sourced entries and creates a new immutable child:
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/grounding \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entries": [{
+      "kind": "verified_fact",
+      "statement": "The repository contains app/main.py.",
+      "sources": ["repo:app/main.py"]
+    }],
+    "unresolved_gaps": ["Confirm deployment owner."],
+    "status": "grounding"
+  }'
+```
+
+Clarification questions use stable IDs; answers target those IDs:
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/clarifications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "questions": [{
+      "id": "deployment-owner",
+      "question": "Who owns deployment?"
+    }]
+  }'
+```
+
+An answer-only request defaults the child status to `grounding`:
+
+```json
+{
+  "answers": [{
+    "id": "deployment-owner",
+    "answer": "The platform maintainer."
+  }]
+}
+```
+
+`ready_for_mission` requires at least one sourced structured `verified_fact`,
+no open structured clarifications, and no unresolved gaps. Readiness does not
+approve, promote, register, or enqueue a Mission Packet.
 
 Raw Intent MCP access is read-only:
 

@@ -104,6 +104,13 @@ def test_ancestors_returns_nearest_parent_first(client, intent_manifest):
     ready = deepcopy(intent_manifest)
     ready["status"] = "ready_for_mission"
     ready["parent_intent_sha"] = grounding_sha
+    ready["grounding_entries"] = [
+        {
+            "kind": "verified_fact",
+            "statement": "The repository contains app/main.py.",
+            "sources": ["repo:app/main.py"],
+        }
+    ]
     ready_sha = client.post("/intents/register", json=ready).json()["intent_sha"]
 
     response = client.get(f"/intents/{ready_sha}/ancestors")

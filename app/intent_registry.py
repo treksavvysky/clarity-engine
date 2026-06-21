@@ -111,6 +111,10 @@ def read(intent_sha: str) -> dict[str, Any]:
         raise CorruptIntentError(
             f"Raw Intent Packet {intent_sha} rendered Markdown does not match its manifest."
         )
+    if manifest.get("status") == "ready_for_mission":
+        from app.intent_workflow import validate_readiness
+
+        validate_readiness(manifest)
     return {
         "intent_sha": intent_sha,
         "manifest": result["manifest"],
@@ -159,6 +163,10 @@ def _validate_revision(manifest: dict[str, Any], intent_sha: str) -> None:
             f"Illegal Raw Intent status transition: {parent_status} -> {status}; "
             f"allowed: {allowed_text}."
         )
+    if status == "ready_for_mission":
+        from app.intent_workflow import validate_readiness
+
+        validate_readiness(manifest)
 
 
 def register(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -219,13 +227,20 @@ def summarize(record: dict[str, Any]) -> dict[str, Any]:
     manifest = record["manifest"]
     raw_intent = manifest["raw_intent"]
     preview = raw_intent if len(raw_intent) <= 120 else raw_intent[:117] + "..."
+    open_clarifications = sum(
+        1
+        for entry in manifest.get("clarifications", [])
+        if isinstance(entry, dict) and entry.get("status") == "open"
+    )
     return {
         "intent_sha": record["intent_sha"],
         "status": manifest["status"],
         "raw_intent_preview": preview,
         "source": manifest["provenance"]["source"],
         "parent_intent_sha": manifest.get("parent_intent_sha"),
-        "clarifications_needed_count": len(manifest.get("clarifications_needed", [])),
+        "clarifications_needed_count": (
+            len(manifest.get("clarifications_needed", [])) + open_clarifications
+        ),
         "unresolved_gaps_count": len(manifest.get("unresolved_gaps", [])),
     }
 
