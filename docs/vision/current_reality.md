@@ -58,7 +58,13 @@
   and requests `ready_for_mission` through the existing HTTP endpoint.
 - Terminal Raw Intent revisions expose no active mutation controls. Browser
   readiness does not approve, promote, register, enqueue, or execute a Mission
-  Packet; promotion controls remain outside the workspace.
+  Packet.
+- Ready Raw Intent revisions expose a PCP-lite candidate editor, packet lint
+  feedback, eligible source selectors for every Current Reality and Constraint
+  entry, explicit caller-supplied approval attribution, and approved promotion.
+- Successful browser promotion follows the terminal promoted child and exposes
+  the linked Mission Packet through the existing packet Browser. It does not
+  enqueue or execute work.
 - Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 
 ## Stage-01.5 Documentation State

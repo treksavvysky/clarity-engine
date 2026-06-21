@@ -35,6 +35,22 @@ def test_root_serves_ui_html(client):
     assert "captureWorkflowDraft()" in response.text
     assert "clearWorkflowDraft(clearedGroup)" in response.text
     assert "It does not approve, promote, register, or execute" in response.text
+    assert 'id="intent-promotion-panel"' in response.text
+    assert 'id="promotion-candidate"' in response.text
+    assert 'id="promotion-load-candidate"' in response.text
+    assert 'id="promotion-lint"' in response.text
+    assert 'id="promotion-lint-result"' in response.text
+    assert 'class="promotion-mapping"' in response.text
+    assert 'id="promotion-approved-by"' in response.text
+    assert 'id="promotion-approval-reference"' in response.text
+    assert 'id="promotion-approved"' in response.text
+    assert 'id="promotion-submit"' in response.text
+    assert 'id="promotion-open-packet"' in response.text
+    assert "'/packets/lint'" in response.text
+    assert "/promote`" in response.text
+    assert "grounding_references: groundingReferences" in response.text
+    assert "openMissionPacket" in response.text
+    assert "does not enqueue or execute work" in response.text
     assert 'data-tab="intent"' in response.text
     assert 'id="intent-raw"' in response.text
     assert "/intents/draft" in response.text

@@ -69,12 +69,19 @@
   .check-item { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); font-size: 12px; }
   .check-item.pass { color: var(--added); }
   .check-mark { width: 16px; flex: 0 0 16px; text-align: center; }
+  .promotion-panel { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .promotion-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr); gap: 12px; }
+  .mapping-list { display: grid; gap: 10px; }
+  .mapping-entry { background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+  .mapping-entry label { margin-top: 8px; }
+  .approval-row { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+  .approval-row input { width: 16px; flex: 0 0 16px; margin-top: 1px; }
   @media (max-width: 820px) {
     header { align-items: flex-start; flex-direction: column; gap: 4px; }
     nav { overflow-x: auto; }
     nav button { flex: 0 0 auto; }
     main { padding: 14px; }
-    .row, .detail-grid, .workflow-grid { grid-template-columns: minmax(0, 1fr) !important; }
+    .row, .detail-grid, .workflow-grid, .promotion-layout { grid-template-columns: minmax(0, 1fr) !important; }
   }
 </style>
 </head>
@@ -214,6 +221,8 @@ let selectedIntentSha = null;
 let intentDraftManifest = null;
 let intentWorkflowNotice = null;
 let intentWorkflowDraft = newIntentWorkflowDraft();
+let intentPromotionDraft = newIntentPromotionDraft();
+let intentPromotionResult = null;
 
 function newIntentWorkflowDraft() {
   return {
@@ -225,6 +234,20 @@ function newIntentWorkflowDraft() {
     clarificationQuestion: '',
     answerId: '',
     answer: '',
+  };
+}
+
+function newIntentPromotionDraft() {
+  return {
+    candidateText: '',
+    parsedCandidate: null,
+    lintSignature: null,
+    lintResult: null,
+    mappings: {},
+    approved: false,
+    approvedBy: '',
+    approvalReference: '',
+    notice: null,
   };
 }
 
@@ -304,6 +327,8 @@ async function loadIntents() {
       li.addEventListener('click', () => {
         intentWorkflowNotice = null;
         intentWorkflowDraft = newIntentWorkflowDraft();
+        intentPromotionDraft = newIntentPromotionDraft();
+        intentPromotionResult = null;
         selectIntent(item.intent_sha);
       });
       list.appendChild(li);
@@ -358,7 +383,21 @@ function renderLinkedMissions(missions) {
         <span class="badge">${item.grounding_references.length} source mappings</span>
       </div>
       <div class="sha" style="margin-top:7px">promoted revision ${escapeHtml(item.promoted_intent_sha)}</div>
+      <button class="secondary open-linked-packet" data-context-sha="${escapeHtml(item.context_sha)}">Open Mission Packet</button>
     </div>`).join('')}</div>`;
+}
+
+function openMissionPacket(contextSha) {
+  const browserTab = $('.tab-btn[data-tab="browser"]');
+  if (browserTab) browserTab.click();
+  selectedSha = contextSha;
+  selectPacket(contextSha);
+}
+
+function bindLinkedMissionButtons() {
+  $$('.open-linked-packet').forEach(button => {
+    button.addEventListener('click', () => openMissionPacket(button.dataset.contextSha));
+  });
 }
 
 function openClarifications(manifest) {
@@ -434,6 +473,160 @@ function renderWorkflowPanel(manifest) {
     </div>`;
 }
 
+function candidateFromIntent(manifest) {
+  const verifiedFacts = (manifest.grounding_entries || [])
+    .filter(entry => entry.kind === 'verified_fact' && Array.isArray(entry.sources) && entry.sources.length)
+    .map(entry => entry.statement);
+  const constraints = (manifest.constraints || []).length
+    ? manifest.constraints
+    : ['Preserve the grounded Raw Intent scope.'];
+  return {
+    project: (manifest.related_projects || [])[0] || 'Clarity Engine',
+    stage: 'Raw Intent Review',
+    substage: 'approved-promotion',
+    version: '1.0.0',
+    mission: manifest.desired_direction || 'Turn the grounded Raw Intent into one bounded executable mission.',
+    current_reality: verifiedFacts,
+    constraints,
+    acceptance: ['The approved Mission Packet is registered and linked to the source Raw Intent.'],
+    required_artifacts: ['A registered Mission Packet and authoritative intent-to-mission link.'],
+    failure_modes: ['Promotion occurs without complete source mappings or explicit approval.'],
+    substage_gate: ['Only reviewed promotion is in scope; enqueue and execution remain out of scope.'],
+  };
+}
+
+function sourceLabel(field, index, value) {
+  if (field === 'grounding_entries') {
+    return `${field}[${index}] ${value.kind}: ${value.statement} (${(value.sources || []).join(', ')})`;
+  }
+  if (field === 'clarifications') {
+    return `${field}[${index}] ${value.question} Answer: ${value.answer}`;
+  }
+  return `${field}[${index}] ${value}`;
+}
+
+function eligibleSources(manifest, packetField) {
+  const sources = [];
+  (manifest.grounding_entries || []).forEach((entry, index) => {
+    if (packetField === 'current_reality' && (
+      entry.kind !== 'verified_fact' || !Array.isArray(entry.sources) || !entry.sources.length
+    )) return;
+    sources.push({
+      value: `grounding_entries:${index}`,
+      label: sourceLabel('grounding_entries', index, entry),
+    });
+  });
+  if (packetField === 'current_reality') return sources;
+  ['human_context', 'constraints', 'context_sources'].forEach(field => {
+    (manifest[field] || []).forEach((entry, index) => {
+      sources.push({ value: `${field}:${index}`, label: sourceLabel(field, index, entry) });
+    });
+  });
+  (manifest.clarifications || []).forEach((entry, index) => {
+    if (entry.status === 'answered' && entry.answer) {
+      sources.push({
+        value: `clarifications:${index}`,
+        label: sourceLabel('clarifications', index, entry),
+      });
+    }
+  });
+  return sources;
+}
+
+function renderLintResult() {
+  const result = intentPromotionDraft.lintResult;
+  if (!result) return '<div class="empty">Lint the candidate to create source mappings.</div>';
+  return `
+    <div class="badge-row">
+      <span class="badge ${result.ok ? 'ready' : 'status'}">${result.ok ? 'lint ok' : 'lint errors'}</span>
+      <span class="badge">${(result.warnings || []).length} warnings</span>
+    </div>
+    ${(result.errors || []).length ? `<pre class="error">${escapeHtml(result.errors.join('\n'))}</pre>` : ''}
+    ${(result.warnings || []).length ? `<pre>${escapeHtml(result.warnings.join('\n'))}</pre>` : ''}`;
+}
+
+function renderMappingRows(manifest) {
+  const candidate = intentPromotionDraft.parsedCandidate;
+  if (!candidate || !intentPromotionDraft.lintResult || !intentPromotionDraft.lintResult.ok) {
+    return '<div class="empty">A lint-clean candidate is required before mapping.</div>';
+  }
+  const rows = [];
+  for (const field of ['current_reality', 'constraints']) {
+    (candidate[field] || []).forEach((entry, index) => {
+      const key = `${field}:${index}`;
+      const options = eligibleSources(manifest, field);
+      const selected = intentPromotionDraft.mappings[key] || '';
+      rows.push(`
+        <div class="mapping-entry">
+          <div class="badge-row"><span class="badge">${escapeHtml(field)}[${index}]</span></div>
+          <div style="margin-top:7px">${escapeHtml(entry)}</div>
+          <label for="promotion-map-${field}-${index}">Raw Intent source</label>
+          <select class="promotion-mapping" id="promotion-map-${field}-${index}" data-mapping-key="${key}">
+            <option value="">Select a source</option>
+            ${options.map(option => `<option value="${escapeHtml(option.value)}" ${option.value === selected ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}
+          </select>
+        </div>`);
+    });
+  }
+  return rows.length
+    ? `<div class="mapping-list">${rows.join('')}</div>`
+    : '<div class="empty">The candidate must contain Current Reality and Constraints entries.</div>';
+}
+
+function renderPromotionPanel(manifest) {
+  if (manifest.status !== 'ready_for_mission') return '';
+  const candidateText = intentPromotionDraft.candidateText || JSON.stringify(candidateFromIntent(manifest), null, 2);
+  if (!intentPromotionDraft.candidateText) intentPromotionDraft.candidateText = candidateText;
+  const notice = intentPromotionDraft.notice
+    ? `<div class="workflow-status ${intentPromotionDraft.notice.error ? 'error' : ''}" id="promotion-status">${escapeHtml(intentPromotionDraft.notice.message)}</div>`
+    : '<div class="workflow-status" id="promotion-status"></div>';
+  return `
+    <div class="promotion-panel" id="intent-promotion-panel">
+      <h3>Candidate Review and Promotion</h3>
+      ${notice}
+      <div class="promotion-layout">
+        <div class="workflow-action">
+          <h4>Mission Packet Candidate</h4>
+          <label for="promotion-candidate">PCP-lite JSON</label>
+          <textarea id="promotion-candidate" rows="22">${escapeHtml(candidateText)}</textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="secondary" id="promotion-load-candidate">Reset Candidate</button>
+            <button class="primary" id="promotion-lint">Lint and Build Mappings</button>
+          </div>
+          <div id="promotion-lint-result">${renderLintResult()}</div>
+        </div>
+        <div class="workflow-action">
+          <h4>Grounding References</h4>
+          <div id="promotion-mappings">${renderMappingRows(manifest)}</div>
+          <h4 style="margin-top:18px">Approval Attribution</h4>
+          <label for="promotion-approved-by">Approved by</label>
+          <input id="promotion-approved-by" value="${escapeHtml(intentPromotionDraft.approvedBy)}" placeholder="Human product owner">
+          <label for="promotion-approval-reference">Reference (optional)</label>
+          <input id="promotion-approval-reference" value="${escapeHtml(intentPromotionDraft.approvalReference)}" placeholder="CLARITY-EN-43">
+          <label class="approval-row" for="promotion-approved">
+            <input type="checkbox" id="promotion-approved" ${intentPromotionDraft.approved ? 'checked' : ''}>
+            <span>I explicitly approve this candidate and its source mappings for promotion. Attribution is caller-supplied audit data, not authenticated identity.</span>
+          </label>
+          <button class="primary" id="promotion-submit">Promote Mission Packet</button>
+          <div class="sha" style="margin-top:9px">Promotion registers and links a Mission Packet. It does not enqueue or execute work.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderPromotionResult() {
+  if (!intentPromotionResult) return '';
+  return `
+    <div class="promotion-panel" id="intent-promotion-result">
+      <h3>Promotion Result</h3>
+      <div class="structured-entry">
+        <div class="badge-row"><span class="badge ready">promoted</span><span class="badge">${escapeHtml(intentPromotionResult.context_sha)}</span></div>
+        <div style="margin-top:8px">${escapeHtml(intentPromotionResult.manifest.mission)}</div>
+        <button class="primary" id="promotion-open-packet">Open Mission Packet</button>
+      </div>
+    </div>`;
+}
+
 async function selectIntent(intentSha) {
   selectedIntentSha = intentSha;
   $('#raw-intent-detail').innerHTML = '<div class="empty">Loading verified Raw Intent record…</div>';
@@ -473,8 +666,12 @@ async function selectIntent(intentSha) {
           <h3>Linked Mission Packets</h3>${renderLinkedMissions(linked.missions)}
         </div>
       </div>
-      ${renderWorkflowPanel(manifest)}`;
+      ${renderWorkflowPanel(manifest)}
+      ${renderPromotionPanel(manifest)}
+      ${renderPromotionResult()}`;
     bindIntentWorkflow(manifest);
+    bindIntentPromotion(manifest);
+    bindLinkedMissionButtons();
   } catch (err) {
     const message = err.body ? JSON.stringify(err.body, null, 2) : (err.message || String(err));
     $('#raw-intent-detail').innerHTML = `<pre class="error">${escapeHtml(message)}</pre>`;
@@ -626,6 +823,137 @@ function bindIntentWorkflow(manifest) {
       await followIntentRevision(result, 'Ready revision created:');
     } catch (err) {
       setWorkflowStatus(formatApiError(err), true);
+    }
+  });
+}
+
+function capturePromotionDraft() {
+  if ($('#promotion-candidate')) intentPromotionDraft.candidateText = $('#promotion-candidate').value;
+  if ($('#promotion-approved')) intentPromotionDraft.approved = $('#promotion-approved').checked;
+  if ($('#promotion-approved-by')) intentPromotionDraft.approvedBy = $('#promotion-approved-by').value;
+  if ($('#promotion-approval-reference')) {
+    intentPromotionDraft.approvalReference = $('#promotion-approval-reference').value;
+  }
+  $$('.promotion-mapping').forEach(select => {
+    intentPromotionDraft.mappings[select.dataset.mappingKey] = select.value;
+  });
+}
+
+function setPromotionStatus(message, error = false) {
+  intentPromotionDraft.notice = { message, error };
+  const status = $('#promotion-status');
+  if (status) {
+    status.textContent = message;
+    status.classList.toggle('error', error);
+  }
+}
+
+function parsePromotionCandidate() {
+  const text = intentPromotionDraft.candidateText.trim();
+  if (!text) throw new Error('Mission Packet candidate is empty.');
+  return JSON.parse(text);
+}
+
+function requiredMappingKeys(candidate) {
+  const keys = [];
+  for (const field of ['current_reality', 'constraints']) {
+    (candidate[field] || []).forEach((_, index) => keys.push(`${field}:${index}`));
+  }
+  return keys;
+}
+
+function buildGroundingReferences(candidate) {
+  return requiredMappingKeys(candidate).map(key => {
+    const [packetField, packetIndex] = key.split(':');
+    const source = intentPromotionDraft.mappings[key];
+    if (!source) throw new Error(`Select a Raw Intent source for ${packetField}[${packetIndex}].`);
+    const [intentField, intentIndex] = source.split(':');
+    return {
+      packet_field: packetField,
+      packet_index: Number(packetIndex),
+      intent_field: intentField,
+      intent_index: Number(intentIndex),
+    };
+  });
+}
+
+function bindIntentPromotion(manifest) {
+  const openResult = $('#promotion-open-packet');
+  if (openResult && intentPromotionResult) {
+    openResult.addEventListener('click', () => openMissionPacket(intentPromotionResult.context_sha));
+  }
+  if (manifest.status !== 'ready_for_mission') return;
+
+  $('#promotion-load-candidate').addEventListener('click', () => {
+    intentPromotionDraft = newIntentPromotionDraft();
+    intentPromotionDraft.candidateText = JSON.stringify(candidateFromIntent(manifest), null, 2);
+    selectIntent(selectedIntentSha);
+  });
+
+  $('#promotion-lint').addEventListener('click', async () => {
+    capturePromotionDraft();
+    setPromotionStatus('Linting candidate...');
+    try {
+      const candidate = parsePromotionCandidate();
+      const result = await api('POST', '/packets/lint', candidate);
+      intentPromotionDraft.parsedCandidate = candidate;
+      intentPromotionDraft.lintSignature = JSON.stringify(candidate);
+      intentPromotionDraft.lintResult = result;
+      intentPromotionDraft.mappings = {};
+      intentPromotionDraft.notice = {
+        message: result.ok ? 'Candidate is lint-clean. Complete every source mapping.' : 'Candidate lint failed.',
+        error: !result.ok,
+      };
+      await selectIntent(selectedIntentSha);
+    } catch (err) {
+      setPromotionStatus(formatApiError(err), true);
+    }
+  });
+
+  $$('.promotion-mapping').forEach(select => {
+    select.addEventListener('change', () => {
+      intentPromotionDraft.mappings[select.dataset.mappingKey] = select.value;
+    });
+  });
+
+  $('#promotion-submit').addEventListener('click', async () => {
+    capturePromotionDraft();
+    try {
+      const candidate = parsePromotionCandidate();
+      if (!intentPromotionDraft.lintResult || !intentPromotionDraft.lintResult.ok) {
+        throw new Error('Lint the candidate successfully before promotion.');
+      }
+      if (JSON.stringify(candidate) !== intentPromotionDraft.lintSignature) {
+        throw new Error('The candidate changed after linting. Lint it again before promotion.');
+      }
+      if (!intentPromotionDraft.approved) {
+        throw new Error('Explicit approval is required before promotion.');
+      }
+      const approvedBy = intentPromotionDraft.approvedBy.trim();
+      if (!approvedBy) throw new Error('Approved by is required.');
+      const approval = { approved: true, approved_by: approvedBy };
+      const reference = intentPromotionDraft.approvalReference.trim();
+      if (reference) approval.reference = reference;
+      const groundingReferences = buildGroundingReferences(candidate);
+      setPromotionStatus('Promoting Mission Packet...');
+      const result = await api('POST', `/intents/${selectedIntentSha}/promote`, {
+        mission_packet: candidate,
+        approval,
+        grounding_references: groundingReferences,
+      });
+      intentPromotionResult = result;
+      intentPromotionDraft = newIntentPromotionDraft();
+      intentWorkflowNotice = {
+        message: `Mission Packet promoted and linked: ${result.context_sha}.`,
+        error: false,
+      };
+      selectedSha = result.context_sha;
+      selectedIntentSha = result.promoted_intent_sha;
+      await loadPackets();
+      await loadIntents();
+      await selectIntent(result.promoted_intent_sha);
+    } catch (err) {
+      setPromotionStatus(formatApiError(err), true);
     }
   });
 }

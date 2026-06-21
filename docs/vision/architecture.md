@@ -20,7 +20,9 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
   The Raw Intents tab reads revision summaries, complete records, ancestry, and
   linked Mission Packets from the shared HTTP APIs. It also creates immutable
   grounding and clarification revisions and requests readiness through the
-  existing HTTP workflow endpoints. No Node toolchain. A framework replacement
+  existing HTTP workflow endpoints. Ready revisions expose candidate review,
+  source mapping, explicit approval attribution, and approved promotion through
+  the existing promotion endpoint. No Node toolchain. A framework replacement
   remains a separately scoped platform decision.
 
 ## Operating Model
@@ -44,7 +46,9 @@ Raw Intent revisions follow a parallel pre-mission flow:
    no open clarification records, and no unresolved gaps.
 7. The Raw Intents browser follows each successful child revision and presents
    backend-derived readiness feedback without treating readiness as approval.
-8. HTTP promotion validates explicit approval and complete grounding references,
+8. For ready revisions, the browser lints an editable PCP-lite candidate and
+   generates complete source references from explicit human selections.
+9. HTTP promotion validates explicit approval and complete grounding references,
    then registers the Mission Packet, authoritative link, and terminal promoted
    Raw Intent revision. It never enqueues or executes work.
 

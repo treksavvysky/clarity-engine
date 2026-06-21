@@ -136,6 +136,12 @@ readiness. Each successful action follows the returned immutable child
 revision. Terminal `promoted` and `abandoned` revisions do not expose active
 mutation controls.
 
+When a selected revision is `ready_for_mission`, the browser also exposes a
+PCP-lite candidate editor. The candidate is linted through `/packets/lint`, then
+each Current Reality and Constraint entry receives a source selector generated
+from eligible Raw Intent fields. The UI builds index-based
+`grounding_references`; users do not type registry indices directly.
+
 ## Readiness
 
 A revision may enter `ready_for_mission` only when:
@@ -179,6 +185,11 @@ Promotion is idempotent, rejects conflicting links, verifies all records before
 reporting success, and never enqueues or executes work. Set
 `CLARITY_INTENT_LINK_ROOT` to override the link root.
 
+The browser requires explicit approval plus caller-supplied `approved_by`
+attribution before calling promotion. This is audit attribution, not
+authenticated identity. On success it follows the promoted Raw Intent child and
+offers an Open Mission Packet action in the existing packet browser.
+
 ## Current Boundary
 
 Read-only stdio MCP access is available through:
@@ -191,6 +202,6 @@ Read-only stdio MCP access is available through:
 
 These tools delegate to the same registry and domain functions as HTTP. They do
 not expose Raw Intent mutation or promotion. Authentication, external-context
-proxying, browser promotion controls, and MCP mutation remain deferred. The
-existing `/intents/draft` endpoint remains unchanged and continues to produce a
-side-effect-free PCP-lite Mission Packet candidate.
+proxying, and MCP mutation remain deferred. The existing `/intents/draft`
+endpoint remains unchanged and continues to produce a side-effect-free PCP-lite
+Mission Packet candidate.

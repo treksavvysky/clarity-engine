@@ -324,7 +324,16 @@ clarifications, unresolved gaps, ancestry, and linked Mission Packets. Its
 workflow panel can create sourced grounding revisions, ask or answer stable-ID
 clarifications, and request `ready_for_mission`. Successful actions select the
 new child revision automatically. Readiness remains separate from approval and
-promotion; those controls are not exposed in this workspace.
+promotion.
+
+For `ready_for_mission` revisions, the workspace also provides a PCP-lite JSON
+candidate editor, lint feedback, and one generated source selector for every
+candidate Current Reality and Constraint entry. Current Reality mappings are
+limited to sourced verified facts; Constraint mappings use eligible Raw Intent
+material. Promotion requires an explicit checkbox plus caller-supplied
+`approved_by` audit attribution, calls the existing promotion endpoint, follows
+the terminal promoted child, and exposes the linked Mission Packet in the
+existing Browser tab. Promotion does not enqueue or execute work.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
