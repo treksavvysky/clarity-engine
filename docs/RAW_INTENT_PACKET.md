@@ -125,6 +125,12 @@ HTTP operations:
 
 Lint and compose remain side-effect-free.
 
+The browser's **Raw Intents** workspace can construct a root manifest with
+`status: captured` and `provenance.source: ui`, lint it through `/intents/lint`,
+and register it through `/intents/register`. The accepted `raw_intent` textarea
+value is submitted verbatim. Empty optional intake fields are omitted, and a
+successful registration selects the resulting immutable root revision.
+
 Grounding and clarification operations create child revisions. They accept
 strict request shapes and cannot change original intent, provenance, human
 context, constraints, or lineage directly.

@@ -53,6 +53,8 @@
 - The browser UI is a static `ui/index.html` file mounted by FastAPI.
 - The browser UI includes a Raw Intents workspace that lists registered
   revisions and renders complete records, ancestry, and linked Mission Packets.
+  The workspace also validates and registers root Raw Intent Packets with
+  `status: captured` and UI provenance while preserving raw intent verbatim.
   Its Workflow Actions panel creates immutable grounding and clarification
   children, follows successful child revisions, shows readiness prerequisites,
   and requests `ready_for_mission` through the existing HTTP endpoint.
@@ -65,6 +67,9 @@
 - Successful browser promotion follows the terminal promoted child and exposes
   the linked Mission Packet through the existing packet Browser. It does not
   enqueue or execute work.
+- The Legacy Draft tab remains a separate compatibility path that calls
+  `/intents/draft` to produce a Mission Packet candidate directly; it does not
+  register a Raw Intent Packet.
 - Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 
 ## Stage-01.5 Documentation State

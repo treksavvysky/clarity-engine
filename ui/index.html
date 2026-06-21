@@ -76,12 +76,15 @@
   .mapping-entry label { margin-top: 8px; }
   .approval-row { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 12px; }
   .approval-row input { width: 16px; flex: 0 0 16px; margin-top: 1px; }
+  .capture-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .capture-grid .wide { grid-column: span 2; }
   @media (max-width: 820px) {
     header { align-items: flex-start; flex-direction: column; gap: 4px; }
     nav { overflow-x: auto; }
     nav button { flex: 0 0 auto; }
     main { padding: 14px; }
-    .row, .detail-grid, .workflow-grid, .promotion-layout { grid-template-columns: minmax(0, 1fr) !important; }
+    .row, .detail-grid, .workflow-grid, .promotion-layout, .capture-grid { grid-template-columns: minmax(0, 1fr) !important; }
+    .capture-grid .wide { grid-column: auto; }
   }
 </style>
 </head>
@@ -93,7 +96,7 @@
 <nav>
   <button class="tab-btn active" data-tab="browser">Browser</button>
   <button class="tab-btn" data-tab="raw-intents">Raw Intents</button>
-  <button class="tab-btn" data-tab="intent">Intent</button>
+  <button class="tab-btn" data-tab="intent">Legacy Draft</button>
   <button class="tab-btn" data-tab="diff">Diff</button>
   <button class="tab-btn" data-tab="editor">Editor</button>
 </nav>
@@ -112,6 +115,44 @@
   </section>
 
   <section id="tab-raw-intents" class="tab">
+    <div class="panel" id="intent-capture-panel" style="margin-bottom:16px;">
+      <h2>Capture Raw Intent</h2>
+      <div class="capture-grid">
+        <div class="wide">
+          <label for="capture-raw-intent">Raw intent</label>
+          <textarea id="capture-raw-intent" rows="7" placeholder="Capture the thought as it exists now."></textarea>
+        </div>
+        <div>
+          <label for="capture-desired-direction">Desired direction</label>
+          <textarea id="capture-desired-direction" rows="7" placeholder="Optional sense of direction."></textarea>
+        </div>
+        <div>
+          <label for="capture-human-context">Human context (one per line)</label>
+          <textarea id="capture-human-context" rows="5"></textarea>
+        </div>
+        <div>
+          <label for="capture-constraints">Constraints (one per line)</label>
+          <textarea id="capture-constraints" rows="5"></textarea>
+        </div>
+        <div>
+          <label for="capture-assumptions">Assumptions (one per line)</label>
+          <textarea id="capture-assumptions" rows="5"></textarea>
+        </div>
+        <div>
+          <label for="capture-related-projects">Related projects (one per line)</label>
+          <textarea id="capture-related-projects" rows="4"></textarea>
+        </div>
+        <div>
+          <label for="capture-context-sources">Context sources (one per line)</label>
+          <textarea id="capture-context-sources" rows="4"></textarea>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="primary" id="capture-register">Validate and Register</button>
+          <div class="workflow-status" id="capture-status"></div>
+        </div>
+      </div>
+    </div>
     <div class="row">
       <div class="panel">
         <h2>Raw Intent Revisions <button class="secondary" id="intent-refresh" style="float:right;padding:4px 10px" aria-label="Refresh Raw Intents">↻</button></h2>
@@ -127,7 +168,7 @@
   <section id="tab-intent" class="tab">
     <div class="row" style="grid-template-columns: minmax(340px, 460px) 1fr;">
       <div class="panel">
-        <h2>Raw Intent</h2>
+        <h2>Legacy Mission Draft</h2>
         <label for="intent-raw">Intent</label>
         <textarea id="intent-raw" style="height:120px;" placeholder="I should work on code-server."></textarea>
         <label for="intent-context">Context bullets (one per line)</label>
@@ -997,6 +1038,75 @@ function linesFromTextarea(selector) {
     .filter(Boolean);
 }
 
+function buildCapturedIntentManifest() {
+  const manifest = {
+    version: '1.0.0',
+    raw_intent: $('#capture-raw-intent').value,
+    status: 'captured',
+    provenance: { source: 'ui' },
+  };
+  const optionalLists = {
+    human_context: '#capture-human-context',
+    constraints: '#capture-constraints',
+    assumptions: '#capture-assumptions',
+    related_projects: '#capture-related-projects',
+    context_sources: '#capture-context-sources',
+  };
+  for (const [field, selector] of Object.entries(optionalLists)) {
+    const values = linesFromTextarea(selector);
+    if (values.length) manifest[field] = values;
+  }
+  const desiredDirection = $('#capture-desired-direction').value.trim();
+  if (desiredDirection) manifest.desired_direction = desiredDirection;
+  return manifest;
+}
+
+function setCaptureStatus(message, error = false) {
+  const status = $('#capture-status');
+  status.textContent = message;
+  status.classList.toggle('error', error);
+}
+
+function clearCaptureForm() {
+  [
+    '#capture-raw-intent',
+    '#capture-desired-direction',
+    '#capture-human-context',
+    '#capture-constraints',
+    '#capture-assumptions',
+    '#capture-related-projects',
+    '#capture-context-sources',
+  ].forEach(selector => { $(selector).value = ''; });
+}
+
+async function registerCapturedIntent() {
+  const manifest = buildCapturedIntentManifest();
+  setCaptureStatus('Validating Raw Intent...');
+  try {
+    const lint = await api('POST', '/intents/lint', manifest);
+    if (!lint.ok) {
+      setCaptureStatus(lint.errors.join('\n'), true);
+      return;
+    }
+    setCaptureStatus('Registering captured Raw Intent...');
+    const result = await api('POST', '/intents/register', manifest);
+    clearCaptureForm();
+    intentWorkflowNotice = {
+      message: `Captured Raw Intent ${result.registered ? 'registered' : 'already registered'}: ${result.intent_sha}.`,
+      error: false,
+    };
+    intentWorkflowDraft = newIntentWorkflowDraft();
+    intentPromotionDraft = newIntentPromotionDraft();
+    intentPromotionResult = null;
+    selectedIntentSha = result.intent_sha;
+    await loadIntents();
+    await selectIntent(result.intent_sha);
+    setCaptureStatus(result.registered ? 'Captured Raw Intent registered.' : 'Captured Raw Intent already registered.');
+  } catch (err) {
+    setCaptureStatus(formatApiError(err), true);
+  }
+}
+
 function routeFromInput() {
   return $('#intent-route').value
     .split(',')
@@ -1157,6 +1267,7 @@ async function editorAction(label, method, path) {
 tabSwitcher();
 $('#refresh').addEventListener('click', loadPackets);
 $('#intent-refresh').addEventListener('click', loadIntents);
+$('#capture-register').addEventListener('click', registerCapturedIntent);
 $('#intent-load-example').addEventListener('click', () => {
   $('#intent-raw').value = 'I should work on code-server.';
   $('#intent-context').value = 'code-server is part of the active dev environment.';

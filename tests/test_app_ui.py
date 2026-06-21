@@ -8,6 +8,20 @@ def test_root_serves_ui_html(client):
     assert "Clarity Engine" in response.text
     assert 'id="packet-list"' in response.text
     assert 'data-tab="raw-intents"' in response.text
+    assert 'id="intent-capture-panel"' in response.text
+    assert 'id="capture-raw-intent"' in response.text
+    assert 'id="capture-desired-direction"' in response.text
+    assert 'id="capture-human-context"' in response.text
+    assert 'id="capture-constraints"' in response.text
+    assert 'id="capture-assumptions"' in response.text
+    assert 'id="capture-related-projects"' in response.text
+    assert 'id="capture-context-sources"' in response.text
+    assert 'id="capture-register"' in response.text
+    assert 'id="capture-status"' in response.text
+    assert "raw_intent: $('#capture-raw-intent').value" in response.text
+    assert "provenance: { source: 'ui' }" in response.text
+    assert "'/intents/lint'" in response.text
+    assert "'/intents/register'" in response.text
     assert 'id="intent-list"' in response.text
     assert 'id="raw-intent-detail"' in response.text
     assert "/intents/' + intentSha" in response.text
@@ -52,6 +66,8 @@ def test_root_serves_ui_html(client):
     assert "openMissionPacket" in response.text
     assert "does not enqueue or execute work" in response.text
     assert 'data-tab="intent"' in response.text
+    assert ">Legacy Draft</button>" in response.text
+    assert "Legacy Mission Draft" in response.text
     assert 'id="intent-raw"' in response.text
     assert "/intents/draft" in response.text
     assert "@media (max-width: 820px)" in response.text

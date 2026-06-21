@@ -16,8 +16,9 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 - **MCP server:** `app/mcp_server.py` exposes eight Mission Packet tools plus five read-only Raw Intent tools (`list`, `get`, `lineage`, `linked missions`, `diff`) over stdio. All tools delegate to the same modules the HTTP endpoints use.
 - **Agentic workflow ties (JCT):** `POST /packets/enqueue` returns a JCT-ready envelope with `task_id === context_sha` and the optional `callback_url` transport field (Clarity Engine never calls it).
 - **UI:** `ui/index.html` is a single static page with Mission Packet Browser,
-  Raw Intents, legacy Intent Draft, Diff, and Editor tabs, served by FastAPI.
-  The Raw Intents tab reads revision summaries, complete records, ancestry, and
+  Raw Intents, Legacy Draft, Diff, and Editor tabs, served by FastAPI. The Raw
+  Intents tab captures and registers root Raw Intent Packets, then reads revision
+  summaries, complete records, ancestry, and
   linked Mission Packets from the shared HTTP APIs. It also creates immutable
   grounding and clarification revisions and requests readiness through the
   existing HTTP workflow endpoints. Ready revisions expose candidate review,
@@ -34,7 +35,8 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 
 Raw Intent revisions follow a parallel pre-mission flow:
 
-1. A v1 Raw Intent manifest is validated and deterministically composed.
+1. The browser or another caller submits a v1 Raw Intent root for validation
+   and explicit registration; accepted raw text is preserved verbatim.
 2. Explicit registration enforces root or legal parent-transition rules.
 3. The complete record is published atomically under its `intent_sha`.
 4. Read, list, diff, and ancestry APIs verify integrity before returning data.

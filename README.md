@@ -160,20 +160,20 @@ rules, persistence behavior, HTTP operations, and current exclusions.
 
 ```bash
 # Side-effect-free validation and composition
-curl -s -X POST http://127.0.0.1:8000/intents/lint \
+curl -s -X POST http://127.0.0.1:8010/intents/lint \
   -H "Content-Type: application/json" \
   -d @packets/examples/raw_intent_packet_example.json
-curl -s -X POST http://127.0.0.1:8000/intents/compose \
+curl -s -X POST http://127.0.0.1:8010/intents/compose \
   -H "Content-Type: application/json" \
   -d @packets/examples/raw_intent_packet_example.json
 
 # Explicit persistence and retrieval
-curl -s -X POST http://127.0.0.1:8000/intents/register \
+curl -s -X POST http://127.0.0.1:8010/intents/register \
   -H "Content-Type: application/json" \
   -d @packets/examples/raw_intent_packet_example.json
-curl -s http://127.0.0.1:8000/intents
-curl -s http://127.0.0.1:8000/intents/<intent_sha>
-curl -s http://127.0.0.1:8000/intents/<intent_sha>/ancestors
+curl -s http://127.0.0.1:8010/intents
+curl -s http://127.0.0.1:8010/intents/<intent_sha>
+curl -s http://127.0.0.1:8010/intents/<intent_sha>/ancestors
 ```
 
 `POST /intents/diff` accepts `left` and `right`, each an `intent_sha` or inline
@@ -321,6 +321,10 @@ The browser UI also exposes this flow in the **Intent** tab: write raw intent, a
 The **Raw Intents** tab lists immutable revisions and displays the selected
 record's verbatim intent, provenance, context, constraints, grounding,
 clarifications, unresolved gaps, ancestry, and linked Mission Packets. Its
+capture form validates and registers a root Raw Intent with `status: captured`
+and `provenance.source: ui`, preserving the raw intent text exactly. Optional
+human context, constraints, direction, assumptions, related projects, and
+context sources can be included without being treated as grounded facts. Its
 workflow panel can create sourced grounding revisions, ask or answer stable-ID
 clarifications, and request `ready_for_mission`. Successful actions select the
 new child revision automatically. Readiness remains separate from approval and
@@ -334,6 +338,10 @@ material. Promotion requires an explicit checkbox plus caller-supplied
 `approved_by` audit attribution, calls the existing promotion endpoint, follows
 the terminal promoted child, and exposes the linked Mission Packet in the
 existing Browser tab. Promotion does not enqueue or execute work.
+
+The **Legacy Draft** tab remains available for compatibility. It creates a
+Mission Packet draft directly through `/intents/draft`; it is not the Raw Intent
+Packet capture path.
 
 ## Constraints
 - Deterministic outputs: the same manifest always produces the same `packet_md`, normalized `manifest`, and `context_sha`.
