@@ -21,6 +21,9 @@ def isolated_registry(tmp_path, monkeypatch):
     monkeypatch.setenv(
         "CLARITY_INTENT_REGISTRY_ROOT", str(tmp_path / "intent-registry")
     )
+    monkeypatch.setenv(
+        "CLARITY_INTENT_LINK_ROOT", str(tmp_path / "intent-links")
+    )
     yield
 
 
@@ -60,6 +63,59 @@ def _intent_example() -> dict:
         / "raw_intent_packet_example.json"
     )
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _promote_example(client) -> tuple[str, dict]:
+    root_sha = client.post(
+        "/intents/register", json=_intent_example()
+    ).json()["intent_sha"]
+    grounding_sha = client.post(
+        f"/intents/{root_sha}/grounding",
+        json={
+            "entries": [
+                {
+                    "kind": "verified_fact",
+                    "statement": "The repository contains app/main.py.",
+                    "sources": ["repo:app/main.py"],
+                }
+            ]
+        },
+    ).json()["intent_sha"]
+    ready_sha = client.post(
+        f"/intents/{grounding_sha}/grounding",
+        json={"status": "ready_for_mission"},
+    ).json()["intent_sha"]
+    request = {
+        "mission_packet": {
+            "mission": "Verify linked Mission Packet access.",
+            "current_reality": ["The repository contains app/main.py."],
+            "constraints": ["Do not build a general-purpose context platform."],
+            "acceptance": ["The linked Mission Packet is returned."],
+            "required_artifacts": ["A validated link record exists."],
+            "failure_modes": ["The MCP tool mutates an intent."],
+            "substage_gate": ["Only read access is in scope."],
+        },
+        "approval": {"approved": True, "approved_by": "Human product owner"},
+        "grounding_references": [
+            {
+                "packet_field": "current_reality",
+                "packet_index": 0,
+                "intent_field": "grounding_entries",
+                "intent_index": 0,
+            },
+            {
+                "packet_field": "constraints",
+                "packet_index": 0,
+                "intent_field": "constraints",
+                "intent_index": 0,
+            },
+        ],
+    }
+    promoted = client.post(
+        f"/intents/{ready_sha}/promote", json=request
+    )
+    assert promoted.status_code == 200
+    return ready_sha, promoted.json()
 
 
 def test_compose_tool_matches_http(client, example_manifest):
@@ -263,6 +319,21 @@ def test_get_intent_tool_exposes_structured_grounding_fields(client):
     ]
 
 
+def test_get_intent_missions_tool_matches_http(client):
+    ready_sha, _ = _promote_example(client)
+
+    assert _call(
+        "get_intent_missions_tool", {"intent_sha": ready_sha}
+    ) == client.get(f"/intents/{ready_sha}/missions").json()
+
+
+def test_get_intent_missions_tool_exposes_unknown_intent_code():
+    error = _call_error(
+        "get_intent_missions_tool", {"intent_sha": "0" * 64}
+    )
+    assert "unknown_intent" in error
+
+
 def test_server_lists_expected_tools():
     tools = _run(mcp_server.mcp.list_tools())
     names = {t.name for t in tools}
@@ -278,6 +349,7 @@ def test_server_lists_expected_tools():
         "list_intents_tool",
         "get_intent_tool",
         "get_intent_lineage_tool",
+        "get_intent_missions_tool",
         "diff_intents_tool",
     }.issubset(names)
-    assert len(names) == 12
+    assert len(names) == 13

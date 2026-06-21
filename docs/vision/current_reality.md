@@ -1,4 +1,4 @@
-# Current Reality (Facts Only) — Stage-07.2 + Grounded Raw Intent Workflow
+# Current Reality (Facts Only) — Stage-07.2 + Approved Raw Intent Promotion
 
 ## Repository / Contract Baseline
 - Core artifacts have evolved through Stage-06:
@@ -8,10 +8,12 @@
   - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
 
 ## API Implementation State
-- A FastAPI application at `app/main.py` (v0.4.0) exposes:
+- A FastAPI application at `app/main.py` (v0.5.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
   - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
+  - Raw Intent lint, compose, register, list, get, ancestors, diff, grounding,
+    clarification, approved promotion, and linked-mission operations.
   - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
   - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
   - `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, and `GET /packets/{sha}/ancestors` for registry and lineage operations.
@@ -27,6 +29,8 @@
 - A `Dockerfile` exists for running the FastAPI app with Python 3.12.
 - `docker-compose.yml` launches the service on host port `8010` mapped to container port `8000`.
 - Compose bind mounts `./packets/registry` to `/app/packets/registry` so the container and host checkout share the same runtime packet registry.
+- Compose also bind mounts `./packets/intents` and `./packets/links` for Raw
+  Intent revisions and authoritative intent-to-mission links.
 - Compose runs the service as configurable `CLARITY_UID`/`CLARITY_GID` values, defaulting to `1000:1000`, so bind-mounted registry files remain host-editable.
 
 ## Verified Execution (Observed)
@@ -42,7 +46,8 @@
 - CI runs `pytest -q`, lints the example manifest, and composes the example manifest.
 
 ## Service Properties
-- Persistence is filesystem-only under `packets/registry/<sha>/`, with no database.
+- Persistence is filesystem-only and atomically published under
+  `packets/registry/<sha>/`, with no database.
 - Compose and lint endpoints are side-effect-free; register and enqueue write to the registry.
 - No authentication, secrets handling, or outbound network calls are present.
 - The browser UI is a static `ui/index.html` file mounted by FastAPI.
@@ -123,12 +128,12 @@ All Stage-03 substages (03.1–03.3) are complete.
 All Stage-04 substages (04.1–04.2) are complete.
 
 ## Stage-05.1 MCP Tool Exposure
-- `app/mcp_server.py` exposes twelve MCP tools over stdio.
+- `app/mcp_server.py` exposes thirteen MCP tools over stdio.
 - Mission Packet tools: `compose_packet_tool`, `lint_packet_tool`,
   `register_packet_tool`, `get_packet_tool`, `list_packets_tool`,
   `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
 - Read-only Raw Intent tools: `list_intents_tool`, `get_intent_tool`,
-  `get_intent_lineage_tool`, `diff_intents_tool`.
+  `get_intent_lineage_tool`, `get_intent_missions_tool`, `diff_intents_tool`.
 - Tool handlers delegate to shared modules (`tools/compose_packet.py`,
   `tools/lint_packet.py`, `app/registry.py`, and `app/intent_registry.py`) with
   no transport-local domain logic.
@@ -207,6 +212,11 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
 - FastAPI exposes `POST /intents/{intent_sha}/grounding` and
   `POST /intents/{intent_sha}/clarifications`; both create immutable child
   revisions and leave parents unchanged.
+- FastAPI exposes `POST /intents/{intent_sha}/promote`, which requires a
+  registered ready revision, a lint-clean PCP-lite candidate, explicit
+  caller-supplied human approval, and complete per-entry grounding references.
+- FastAPI exposes `GET /intents/{intent_sha}/missions` for validated linked
+  Mission Packet summaries.
 - Structured grounding entries carry a kind, statement, and source references.
 - Structured clarification entries carry a stable ID, question, open/answered
   status, and answer when resolved.
@@ -215,9 +225,19 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
   registration path.
 - Lint and compose are side-effect-free; registration is explicit, append-only,
   atomic, and idempotent.
-- Docker Compose independently bind mounts `./packets/intents` with the same
-  configurable UID/GID used by the Mission Packet registry.
-- Raw Intent MCP remains read-only. Promotion, approval, mission-link records,
-  external-context proxying, and UI migration are not implemented.
-- Existing PCP-lite behavior, packet hashes, registry paths, MCP tools, and
-  `/intents/draft` behavior remain unchanged.
+- `app/intent_links.py` atomically stores authoritative link records under
+  `packets/links/intent-missions/<intent_sha>/<context_sha>.json`; reads verify
+  source and promoted Raw Intent revisions, Mission Packet identity/rendering,
+  and grounding references.
+- Promotion registers or reuses the Mission Packet, link record, and terminal
+  promoted Raw Intent revision in a retry-safe order, then verifies all records.
+- Promotion never enqueues or executes work.
+- Docker Compose independently bind mounts `./packets/intents` and
+  `./packets/links` with the same configurable UID/GID used by the Mission
+  Packet registry.
+- Raw Intent MCP remains mutation-free and now includes
+  `get_intent_missions_tool`, bringing the server to thirteen tools.
+- Authentication, external-context proxying, MCP promotion, and UI migration
+  are not implemented.
+- Existing PCP-lite behavior, packet hashes, registry paths, prior MCP tool
+  names/behavior, and `/intents/draft` behavior remain unchanged.

@@ -9,14 +9,20 @@ from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import intent_registry, intent_workflow, registry
+from app import (
+    intent_links,
+    intent_promotion,
+    intent_registry,
+    intent_workflow,
+    registry,
+)
 from tools import compose_packet, lint_packet, raw_intent_packet
 
 UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 app = FastAPI(
     title="Clarity Engine",
-    version="0.4.0",
+    version="0.5.0",
     description=(
         "Intent and context contract service for human-AI workflows. "
         "Preserves ungrounded thought as Raw Intent Packets and composes grounded "
@@ -267,6 +273,23 @@ def _intent_error(exc: intent_registry.IntentRegistryError) -> HTTPException:
     )
 
 
+def _intent_link_error(exc: intent_links.IntentLinkError) -> HTTPException:
+    status_code = 409
+    if isinstance(exc, intent_links.InvalidIntentLinkError):
+        status_code = 400
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": exc.code, "message": exc.message},
+    )
+
+
+def _promotion_error(exc: intent_promotion.PromotionError) -> HTTPException:
+    return HTTPException(
+        status_code=400,
+        detail={"code": exc.code, "message": exc.message},
+    )
+
+
 @app.post(
     "/intents/lint",
     tags=["intents"],
@@ -429,6 +452,48 @@ def create_clarification_revision_endpoint(
         return intent_workflow.register_clarification_revision(intent_sha, body)
     except intent_registry.IntentRegistryError as exc:
         raise _intent_error(exc) from exc
+
+
+@app.post(
+    "/intents/{intent_sha}/promote",
+    tags=["intents"],
+    summary="Promote a ready Raw Intent into an approved Mission Packet",
+    description=(
+        "Validates a ready Raw Intent, a lint-clean PCP-lite candidate, complete "
+        "grounding references, and explicit human approval. Registers the Mission "
+        "Packet, authoritative link, and terminal promoted Raw Intent revision. "
+        "This operation never enqueues or executes work."
+    ),
+)
+def promote_intent_endpoint(
+    intent_sha: str, body: Any = Body(...)
+) -> dict[str, Any]:
+    try:
+        return intent_promotion.promote(intent_sha, body)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+    except intent_links.IntentLinkError as exc:
+        raise _intent_link_error(exc) from exc
+    except intent_promotion.PromotionError as exc:
+        raise _promotion_error(exc) from exc
+
+
+@app.get(
+    "/intents/{intent_sha}/missions",
+    tags=["intents"],
+    summary="List Mission Packets promoted from a Raw Intent",
+    description=(
+        "Returns validated authoritative intent-to-mission links and Mission Packet "
+        "summaries. This operation is read-only."
+    ),
+)
+def get_intent_missions_endpoint(intent_sha: str) -> dict[str, Any]:
+    try:
+        return intent_links.list_missions(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        raise _intent_error(exc) from exc
+    except intent_links.IntentLinkError as exc:
+        raise _intent_link_error(exc) from exc
 
 
 @app.post(

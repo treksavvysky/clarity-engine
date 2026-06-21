@@ -40,6 +40,9 @@ jobs:
       - name: Run grounding and clarification workflow tests
         run: pytest -q tests/test_intent_workflow.py tests/test_app_intent_workflow_endpoints.py
 
+      - name: Run approved promotion and Mission linkage tests
+        run: pytest -q tests/test_intent_links.py tests/test_app_intent_promotion.py
+
       - name: Lint example context packet manifest
         run: python tools/lint_packet.py packets/examples/context_packet_example.json
 

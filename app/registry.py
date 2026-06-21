@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parent.parent / "packets" / "registry"
+TEMP_PREFIX = ".packet-"
 
 
 def _root() -> Path:
@@ -35,9 +38,21 @@ def write(sha: str, normalized_manifest_json: str, packet_md: str) -> bool:
     pdir = _packet_dir(sha)
     if pdir.is_dir():
         return False
-    pdir.mkdir(parents=True, exist_ok=True)
-    (pdir / "manifest.json").write_text(normalized_manifest_json, encoding="utf-8")
-    (pdir / "packet.md").write_text(packet_md, encoding="utf-8")
+    root = _root()
+    root.mkdir(parents=True, exist_ok=True)
+    temp_dir = Path(tempfile.mkdtemp(prefix=TEMP_PREFIX, dir=root))
+    try:
+        (temp_dir / "manifest.json").write_text(
+            normalized_manifest_json, encoding="utf-8"
+        )
+        (temp_dir / "packet.md").write_text(packet_md, encoding="utf-8")
+        try:
+            temp_dir.rename(pdir)
+        except FileExistsError:
+            return False
+    finally:
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)
     return True
 
 

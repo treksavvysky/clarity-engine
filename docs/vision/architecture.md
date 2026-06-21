@@ -7,11 +7,13 @@ Clarity Engine is a contract-driven pipeline that turns missions into reliable C
 
 ## Components (Shipped)
 - **Packet toolchain (CLI):** `tools/compose_packet.py` and `tools/lint_packet.py` produce `packet.md`, normalized manifests, and `context_sha` deterministically from `pcp_lite.schema.json`.
-- **Content-addressed registry:** `app/registry.py` writes `packets/registry/<sha>/{manifest.json,packet.md}` (Stage-03). Overridable via `CLARITY_REGISTRY_ROOT`. Idempotent, append-only at the API surface.
+- **Content-addressed registry:** `app/registry.py` atomically writes `packets/registry/<sha>/{manifest.json,packet.md}` (Stage-03). Overridable via `CLARITY_REGISTRY_ROOT`. Idempotent, append-only at the API surface.
 - **Raw Intent registry:** `app/intent_registry.py` atomically stores immutable revisions under `packets/intents/<intent_sha>/{manifest.json,intent.md}`. It validates record integrity, exact raw-intent preservation, lifecycle transitions, and ancestry. Overridable via `CLARITY_INTENT_REGISTRY_ROOT`.
 - **Grounding workflow:** `app/intent_workflow.py` creates immutable child revisions containing source-attributed grounding entries and stable-ID clarification records. It enforces readiness independently of lifecycle transition legality.
-- **Backend runtime (FastAPI):** `app/main.py` serves the Mission Packet operations plus Raw Intent lint, compose, register, list, get, ancestors, diff, grounding, and clarification endpoints. `/intents/draft` remains the legacy direct Mission Packet draft flow. Shared contract modules define validation and deterministic output rather than Pydantic models.
-- **MCP server:** `app/mcp_server.py` exposes eight Mission Packet tools plus four read-only Raw Intent tools (`list`, `get`, `lineage`, `diff`) over stdio. All tools delegate to the same modules the HTTP endpoints use.
+- **Promotion workflow:** `app/intent_promotion.py` validates readiness, a lint-clean PCP-lite candidate, explicit human approval, and per-entry grounding references before coordinating retry-safe registration of the Mission Packet, authoritative link, and terminal promoted Raw Intent revision.
+- **Intent-to-mission links:** `app/intent_links.py` atomically stores authoritative records under `packets/links/intent-missions/<intent_sha>/<context_sha>.json` and verifies both registries plus grounding-reference integrity on read.
+- **Backend runtime (FastAPI):** `app/main.py` serves the Mission Packet operations plus Raw Intent lint, compose, register, list, get, ancestors, diff, grounding, clarification, promotion, and linked-mission endpoints. `/intents/draft` remains the legacy direct Mission Packet draft flow. Shared contract modules define validation and deterministic output rather than Pydantic models.
+- **MCP server:** `app/mcp_server.py` exposes eight Mission Packet tools plus five read-only Raw Intent tools (`list`, `get`, `lineage`, `linked missions`, `diff`) over stdio. All tools delegate to the same modules the HTTP endpoints use.
 - **Agentic workflow ties (JCT):** `POST /packets/enqueue` returns a JCT-ready envelope with `task_id === context_sha` and the optional `callback_url` transport field (Clarity Engine never calls it).
 - **UI:** `ui/index.html` is a single static page with Browser / Diff / Editor tabs, served by FastAPI. No Node toolchain. A Next.js replacement remains the long-term aspiration and can swap in without backend changes.
 
@@ -28,12 +30,15 @@ Raw Intent revisions follow a parallel pre-mission flow:
 2. Explicit registration enforces root or legal parent-transition rules.
 3. The complete record is published atomically under its `intent_sha`.
 4. Read, list, diff, and ancestry APIs verify integrity before returning data.
-5. Coding agents can retrieve and compare registered Raw Intent revisions over
-   read-only MCP tools. Mutation, promotion, mission links, external-context
-   proxying, and UI migration remain deferred.
+5. Coding agents can retrieve and compare registered Raw Intent revisions and
+   linked Mission Packets over read-only MCP tools. Mutation, promotion,
+   external-context proxying, and UI migration remain unavailable through MCP.
 6. HTTP grounding and clarification operations append structured material by
    creating new revisions. A ready revision requires sourced verified facts,
    no open clarification records, and no unresolved gaps.
+7. HTTP promotion validates explicit approval and complete grounding references,
+   then registers the Mission Packet, authoritative link, and terminal promoted
+   Raw Intent revision. It never enqueues or executes work.
 
 ---
 

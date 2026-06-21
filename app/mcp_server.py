@@ -15,14 +15,14 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from app import intent_registry, registry
+from app import intent_links, intent_registry, registry
 from tools import compose_packet, lint_packet
 
 mcp = FastMCP(
     "clarity-engine",
     instructions=(
         "Clarity Engine MCP tools provide deterministic Mission Packet operations "
-        "and read-only Raw Intent Packet list, get, lineage, and diff access. "
+        "and read-only Raw Intent Packet list, get, lineage, linked-mission, and diff access. "
         "Mission Packet register/enqueue operations persist to packets/registry/. "
         "Raw Intent MCP operations do not mutate, promote, or retrieve external context."
     ),
@@ -55,6 +55,10 @@ def _resolve_manifest(value: Any, side: str) -> dict:
 
 
 def _raise_intent_error(exc: intent_registry.IntentRegistryError) -> None:
+    raise ValueError(f"{exc.code}: {exc.message}") from exc
+
+
+def _raise_intent_link_error(exc: intent_links.IntentLinkError) -> None:
     raise ValueError(f"{exc.code}: {exc.message}") from exc
 
 
@@ -187,6 +191,16 @@ def get_intent_lineage_tool(intent_sha: str) -> dict:
     except intent_registry.IntentRegistryError as exc:
         _raise_intent_error(exc)
     return {"intent_sha": intent_sha, "ancestors": lineage}
+
+
+@mcp.tool(description="List Mission Packets promoted from a Raw Intent.")
+def get_intent_missions_tool(intent_sha: str) -> dict:
+    try:
+        return intent_links.list_missions(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        _raise_intent_error(exc)
+    except intent_links.IntentLinkError as exc:
+        _raise_intent_link_error(exc)
 
 
 @mcp.tool(description="Diff two Raw Intent Packets by intent_sha or inline manifest.")

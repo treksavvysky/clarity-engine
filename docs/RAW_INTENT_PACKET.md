@@ -120,6 +120,8 @@ HTTP operations:
 - `POST /intents/diff`
 - `POST /intents/{intent_sha}/grounding`
 - `POST /intents/{intent_sha}/clarifications`
+- `POST /intents/{intent_sha}/promote`
+- `GET /intents/{intent_sha}/missions`
 
 Lint and compose remain side-effect-free.
 
@@ -138,6 +140,37 @@ A revision may enter `ready_for_mission` only when:
 The same readiness check applies to direct `/intents/register` calls. Readiness
 does not imply human approval or create a Mission Packet.
 
+## Promotion and Mission Links
+
+Promotion is the only Raw Intent operation that creates a Mission Packet. It
+requires:
+
+- a registered `ready_for_mission` source revision;
+- no open structured clarifications or unresolved gaps;
+- a PCP-lite candidate with no lint errors;
+- `approval.approved: true` and non-empty caller-supplied `approved_by`;
+- complete grounding references for every candidate `current_reality` and
+  `constraints` entry.
+
+Each grounding reference names a target `packet_field` and `packet_index`, plus
+an `intent_field` and `intent_index`. Current Reality entries must point to
+sourced `verified_fact` grounding entries. Constraint entries may point to
+grounding entries, human context, captured constraints, context sources, or
+answered clarification records.
+
+Successful promotion creates or reuses three immutable records:
+
+```text
+packets/registry/<context_sha>/
+packets/links/intent-missions/<intent_sha>/<context_sha>.json
+packets/intents/<promoted_intent_sha>/
+```
+
+The link record is authoritative; the Mission Packet is not rewritten.
+Promotion is idempotent, rejects conflicting links, verifies all records before
+reporting success, and never enqueues or executes work. Set
+`CLARITY_INTENT_LINK_ROOT` to override the link root.
+
 ## Current Boundary
 
 Read-only stdio MCP access is available through:
@@ -145,11 +178,11 @@ Read-only stdio MCP access is available through:
 - `list_intents_tool`
 - `get_intent_tool`
 - `get_intent_lineage_tool`
+- `get_intent_missions_tool`
 - `diff_intents_tool`
 
 These tools delegate to the same registry and domain functions as HTTP. They do
-not expose Raw Intent mutation. Promotion into Mission Packets,
-intent-to-mission link records, external-context proxying, and UI changes remain
-deferred. The existing
+not expose Raw Intent mutation or promotion. Authentication,
+external-context proxying, and UI changes remain deferred. The existing
 `/intents/draft` endpoint remains unchanged and continues to produce a
 side-effect-free PCP-lite Mission Packet candidate.

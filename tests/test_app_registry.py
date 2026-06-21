@@ -1,5 +1,7 @@
 """Tests for Stage-03.1 registry endpoints."""
 
+from pathlib import Path
+
 import pytest
 
 
@@ -22,6 +24,21 @@ def test_register_creates_packet_and_is_idempotent(client, example_manifest):
     repeat = second.json()
     assert repeat["context_sha"] == payload["context_sha"]
     assert repeat["registered"] is False
+
+
+def test_register_publishes_complete_directory_without_temp_records(
+    client, example_manifest, tmp_path
+):
+    response = client.post("/packets/register", json=example_manifest)
+    assert response.status_code == 200
+
+    root = Path(tmp_path / "registry")
+    packet_dir = root / response.json()["context_sha"]
+    assert sorted(path.name for path in packet_dir.iterdir()) == [
+        "manifest.json",
+        "packet.md",
+    ]
+    assert not list(root.glob(".packet-*"))
 
 
 def test_get_packet_returns_stored_artifacts(client, example_manifest):

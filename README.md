@@ -231,17 +231,64 @@ An answer-only request defaults the child status to `grounding`:
 no open structured clarifications, and no unresolved gaps. Readiness does not
 approve, promote, register, or enqueue a Mission Packet.
 
+### Approved Mission Packet promotion
+
+Promotion requires a registered `ready_for_mission` revision, a lint-clean
+PCP-lite candidate, explicit human approval, and one verified source location
+for every candidate `current_reality` and `constraints` entry:
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/intents/<intent_sha>/promote \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mission_packet": {
+      "mission": "Ship the bounded improvement.",
+      "current_reality": ["The repository contains app/main.py."],
+      "constraints": ["Do not build a general-purpose context platform."],
+      "acceptance": ["The focused tests pass."],
+      "required_artifacts": ["Implementation and tests exist."],
+      "failure_modes": ["The change expands beyond the approved scope."],
+      "substage_gate": ["Only the bounded improvement is in scope."]
+    },
+    "approval": {
+      "approved": true,
+      "approved_by": "Human product owner",
+      "reference": "CLARITY-EN-28"
+    },
+    "grounding_references": [
+      {
+        "packet_field": "current_reality",
+        "packet_index": 0,
+        "intent_field": "grounding_entries",
+        "intent_index": 0
+      },
+      {
+        "packet_field": "constraints",
+        "packet_index": 0,
+        "intent_field": "constraints",
+        "intent_index": 0
+      }
+    ]
+  }'
+```
+
+The operation registers or reuses the Mission Packet, writes an authoritative
+link under `packets/links/intent-missions/`, and registers a terminal
+`promoted` Raw Intent child. It is retry-safe and never enqueues or executes
+work. `GET /intents/<intent_sha>/missions` returns validated linked missions.
+
 Raw Intent MCP access is read-only:
 
 - `list_intents_tool`
 - `get_intent_tool`
 - `get_intent_lineage_tool`
+- `get_intent_missions_tool`
 - `diff_intents_tool`
 
 These tools return the same successful payloads as the corresponding HTTP
 operations and delegate to the same registry functions. They do not capture,
 revise, promote, approve, or retrieve Fluxion, SMI, repository, or chat context.
-Mission Packet links and browser UI migration remain deferred.
+Browser UI migration remains deferred.
 
 ## Raw Intent Intake
 Clarity Engine can draft a PCP-lite manifest from one raw human intent without registering or enqueueing it:
@@ -276,6 +323,7 @@ The browser UI also exposes this flow in the **Intent** tab: write raw intent, a
 - No outbound network calls. `callback_url` is transport-only data for downstream orchestrators.
 - Persistence is filesystem-only under `packets/registry/<sha>/`. No database, no auth.
 - Raw Intent persistence is filesystem-only under `packets/intents/<intent_sha>/`.
+- Intent-to-mission links are filesystem-only under `packets/links/intent-missions/`.
 - Containerized local access uses host port `8010`; host port `8000` is reserved for NGINX Manager.
 - Offline CI: tests and packet checks must not require network or secrets.
 

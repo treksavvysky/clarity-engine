@@ -210,3 +210,5 @@ __marimo__/
 packets/registry/
 packets/intents/*
 !packets/intents/.gitkeep
+packets/links/*
+!packets/links/.gitkeep

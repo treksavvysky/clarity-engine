@@ -7,9 +7,11 @@ services:
     volumes:
       - ./packets/registry:/app/packets/registry
       - ./packets/intents:/app/packets/intents
+      - ./packets/links:/app/packets/links
     environment:
       CLARITY_REGISTRY_ROOT: /app/packets/registry
       CLARITY_INTENT_REGISTRY_ROOT: /app/packets/intents
+      CLARITY_INTENT_LINK_ROOT: /app/packets/links/intent-missions
     healthcheck:
       test:
         [
