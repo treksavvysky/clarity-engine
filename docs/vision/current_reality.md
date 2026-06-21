@@ -123,9 +123,17 @@ All Stage-03 substages (03.1–03.3) are complete.
 All Stage-04 substages (04.1–04.2) are complete.
 
 ## Stage-05.1 MCP Tool Exposure
-- `app/mcp_server.py` exposes eight MCP tools over stdio: `compose_packet_tool`, `lint_packet_tool`, `register_packet_tool`, `get_packet_tool`, `list_packets_tool`, `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
-- All tool handlers delegate to existing modules (`tools/compose_packet.py`, `tools/lint_packet.py`, `app/registry.py`) — no logic duplication.
-- Tool outputs match HTTP endpoint outputs for the golden manifest (parity verified in tests).
+- `app/mcp_server.py` exposes twelve MCP tools over stdio.
+- Mission Packet tools: `compose_packet_tool`, `lint_packet_tool`,
+  `register_packet_tool`, `get_packet_tool`, `list_packets_tool`,
+  `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
+- Read-only Raw Intent tools: `list_intents_tool`, `get_intent_tool`,
+  `get_intent_lineage_tool`, `diff_intents_tool`.
+- Tool handlers delegate to shared modules (`tools/compose_packet.py`,
+  `tools/lint_packet.py`, `app/registry.py`, and `app/intent_registry.py`) with
+  no transport-local domain logic.
+- Mission Packet and Raw Intent successful outputs match corresponding HTTP
+  endpoint outputs in parity tests.
 - Entry point: `python -m app.mcp_server`.
 
 ## Stage-05.2 Agent Permissions Enforcement
@@ -200,7 +208,7 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
   atomic, and idempotent.
 - Docker Compose independently bind mounts `./packets/intents` with the same
   configurable UID/GID used by the Mission Packet registry.
-- Raw Intent MCP tools, promotion, mission-link records, and UI migration are
-  not implemented.
+- Raw Intent MCP mutation, promotion, mission-link records, external-context
+  proxying, and UI migration are not implemented.
 - Existing PCP-lite behavior, packet hashes, registry paths, MCP tools, and
   `/intents/draft` behavior remain unchanged.

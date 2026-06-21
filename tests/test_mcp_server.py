@@ -7,15 +7,20 @@ then verifies output matches the HTTP endpoints for parity.
 import asyncio
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
-from app import mcp_server
+from app import intent_registry, mcp_server
+from tools import raw_intent_packet
 
 
 @pytest.fixture(autouse=True)
 def isolated_registry(tmp_path, monkeypatch):
     monkeypatch.setenv("CLARITY_REGISTRY_ROOT", str(tmp_path / "registry"))
+    monkeypatch.setenv(
+        "CLARITY_INTENT_REGISTRY_ROOT", str(tmp_path / "intent-registry")
+    )
     yield
 
 
@@ -35,6 +40,26 @@ def _call(name: str, args: dict) -> dict:
     if isinstance(result, dict):
         return result
     raise AssertionError(f"Unexpected result type: {type(result)!r}: {result!r}")
+
+
+def _call_error(name: str, args: dict) -> str:
+    try:
+        result = _run(mcp_server.mcp.call_tool(name, args))
+    except Exception as exc:
+        return str(exc)
+    if isinstance(result, list):
+        return "\n".join(getattr(item, "text", str(item)) for item in result)
+    return str(result)
+
+
+def _intent_example() -> dict:
+    path = (
+        Path(mcp_server.__file__).resolve().parent.parent
+        / "packets"
+        / "examples"
+        / "raw_intent_packet_example.json"
+    )
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def test_compose_tool_matches_http(client, example_manifest):
@@ -126,6 +151,95 @@ def test_check_action_unknown_packet():
     ) == {"allowed": False, "reason": "unknown_packet"}
 
 
+def test_list_and_get_intent_tools_match_http(client):
+    manifest = _intent_example()
+    registered = client.post("/intents/register", json=manifest).json()
+    intent_sha = registered["intent_sha"]
+
+    assert _call("list_intents_tool", {}) == client.get("/intents").json()
+    assert _call("get_intent_tool", {"intent_sha": intent_sha}) == client.get(
+        f"/intents/{intent_sha}"
+    ).json()
+
+
+def test_intent_lineage_tool_matches_http(client):
+    root = _intent_example()
+    root_sha = client.post("/intents/register", json=root).json()["intent_sha"]
+    child = copy.deepcopy(root)
+    child["status"] = "grounding"
+    child["parent_intent_sha"] = root_sha
+    child_sha = client.post("/intents/register", json=child).json()["intent_sha"]
+
+    assert _call(
+        "get_intent_lineage_tool", {"intent_sha": child_sha}
+    ) == client.get(f"/intents/{child_sha}/ancestors").json()
+
+
+def test_diff_intents_tool_matches_http_for_inline_and_registered(client):
+    left = _intent_example()
+    left_sha = client.post("/intents/register", json=left).json()["intent_sha"]
+    right = copy.deepcopy(left)
+    right["status"] = "grounding"
+    right["parent_intent_sha"] = left_sha
+    right_sha = client.post("/intents/register", json=right).json()["intent_sha"]
+
+    assert _call(
+        "diff_intents_tool", {"left": left_sha, "right": right_sha}
+    ) == client.post(
+        "/intents/diff", json={"left": left_sha, "right": right_sha}
+    ).json()
+    assert _call(
+        "diff_intents_tool", {"left": left, "right": left}
+    ) == client.post("/intents/diff", json={"left": left, "right": left}).json()
+
+
+@pytest.mark.parametrize(
+    ("tool_name", "args", "code"),
+    [
+        ("get_intent_tool", {"intent_sha": "not-a-sha"}, "invalid_intent"),
+        ("get_intent_tool", {"intent_sha": "0" * 64}, "unknown_intent"),
+        (
+            "diff_intents_tool",
+            {"left": {"mission": "not allowed"}, "right": {}},
+            "invalid_intent",
+        ),
+    ],
+)
+def test_raw_intent_tools_expose_stable_error_codes(tool_name, args, code):
+    assert code in _call_error(tool_name, args)
+
+
+def test_get_intent_tool_exposes_corrupt_record_code():
+    manifest = _intent_example()
+    output = raw_intent_packet.compose_manifest(manifest)
+    record_dir = intent_registry.root_path() / output["intent_sha"]
+    record_dir.mkdir(parents=True)
+    (record_dir / "manifest.json").write_text(
+        output["normalized_json"], encoding="utf-8"
+    )
+
+    error = _call_error("get_intent_tool", {"intent_sha": output["intent_sha"]})
+    assert "corrupt_intent_record" in error
+
+
+def test_intent_lineage_tool_exposes_broken_lineage_code():
+    manifest = _intent_example()
+    manifest["status"] = "grounding"
+    manifest["parent_intent_sha"] = "f" * 64
+    output = raw_intent_packet.compose_manifest(manifest)
+    record_dir = intent_registry.root_path() / output["intent_sha"]
+    record_dir.mkdir(parents=True)
+    (record_dir / "manifest.json").write_text(
+        output["normalized_json"], encoding="utf-8"
+    )
+    (record_dir / "intent.md").write_text(output["intent_md"], encoding="utf-8")
+
+    error = _call_error(
+        "get_intent_lineage_tool", {"intent_sha": output["intent_sha"]}
+    )
+    assert "broken_lineage" in error
+
+
 def test_server_lists_expected_tools():
     tools = _run(mcp_server.mcp.list_tools())
     names = {t.name for t in tools}
@@ -138,4 +252,9 @@ def test_server_lists_expected_tools():
         "diff_packets_tool",
         "enqueue_packet_tool",
         "check_action_tool",
+        "list_intents_tool",
+        "get_intent_tool",
+        "get_intent_lineage_tool",
+        "diff_intents_tool",
     }.issubset(names)
+    assert len(names) == 12

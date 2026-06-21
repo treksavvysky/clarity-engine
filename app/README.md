@@ -16,6 +16,11 @@ Core operations include:
 `app/registry.py` stores Mission Packets. `app/intent_registry.py` independently
 stores immutable Raw Intent Packet revisions and enforces lifecycle lineage.
 
+`app/mcp_server.py` exposes 12 stdio tools: eight existing Mission Packet tools
+and four read-only Raw Intent tools (`list_intents_tool`, `get_intent_tool`,
+`get_intent_lineage_tool`, `diff_intents_tool`). Raw Intent mutation and
+promotion are not exposed through MCP.
+
 ## Run locally
 1. Install dependencies from the repository root:
    ```bash

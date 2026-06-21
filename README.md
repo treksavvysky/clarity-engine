@@ -117,9 +117,9 @@ curl -s -X POST http://127.0.0.1:8000/packets/enqueue \
 ### MCP server
 ```bash
 python -m app.mcp_server
-# stdio transport; exposes compose_packet_tool, lint_packet_tool,
-# register_packet_tool, get_packet_tool, list_packets_tool,
-# diff_packets_tool, enqueue_packet_tool, check_action_tool
+# stdio transport; exposes 12 tools:
+# Mission Packets: compose, lint, register, get, list, diff, enqueue, check_action
+# Raw Intents: list, get, lineage, diff
 ```
 
 ### Using the MCP server from Claude Code
@@ -130,7 +130,8 @@ Prerequisite: the venv must exist so the configured command (`.venv/bin/python -
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
-Then open this repo in Claude Code and approve the server when prompted. The 8 tools become callable directly in-session.
+Then open this repo in Claude Code and approve the server when prompted. The 12
+tools become callable directly in-session.
 
 ### CLI tools
 ```bash
@@ -183,8 +184,17 @@ Registration enforces immutable lineage: roots begin as `captured`, child
 revisions must preserve `raw_intent` exactly, and status changes must follow the
 documented lifecycle. Corrupt records and broken lineage return explicit errors.
 
-Raw Intent MCP tools, promotion, Mission Packet links, and browser UI migration
-remain deferred.
+Raw Intent MCP access is read-only:
+
+- `list_intents_tool`
+- `get_intent_tool`
+- `get_intent_lineage_tool`
+- `diff_intents_tool`
+
+These tools return the same successful payloads as the corresponding HTTP
+operations and delegate to the same registry functions. They do not capture,
+revise, promote, approve, or retrieve Fluxion, SMI, repository, or chat context.
+Mission Packet links and browser UI migration remain deferred.
 
 ## Raw Intent Intake
 Clarity Engine can draft a PCP-lite manifest from one raw human intent without registering or enqueueing it:

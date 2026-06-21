@@ -1,7 +1,7 @@
 """Clarity Engine MCP server.
 
-Exposes compose/lint/registry/diff/enqueue/permission operations as MCP tools
-over stdio. All tool handlers delegate to the same modules the FastAPI
+Exposes Mission Packet operations and read-only Raw Intent Packet access as MCP
+tools over stdio. All tool handlers delegate to the same modules the FastAPI
 endpoints use — no business logic is reimplemented here.
 
 Run with:
@@ -15,15 +15,16 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from app import registry
+from app import intent_registry, registry
 from tools import compose_packet, lint_packet
 
 mcp = FastMCP(
     "clarity-engine",
     instructions=(
-        "Clarity Engine MCP tools: compose, lint, register, retrieve, diff, "
-        "enqueue, and permission-check Context Packets. All operations are "
-        "deterministic; register/enqueue persist to packets/registry/."
+        "Clarity Engine MCP tools provide deterministic Mission Packet operations "
+        "and read-only Raw Intent Packet list, get, lineage, and diff access. "
+        "Mission Packet register/enqueue operations persist to packets/registry/. "
+        "Raw Intent MCP operations do not mutate, promote, or retrieve external context."
     ),
 )
 
@@ -51,6 +52,10 @@ def _resolve_manifest(value: Any, side: str) -> dict:
     if isinstance(value, dict):
         return value
     raise ValueError(f"'{side}' must be a context_sha string or manifest object.")
+
+
+def _raise_intent_error(exc: intent_registry.IntentRegistryError) -> None:
+    raise ValueError(f"{exc.code}: {exc.message}") from exc
 
 
 @mcp.tool(description="Compose a Context Packet from a manifest.")
@@ -159,6 +164,39 @@ def check_action_tool(context_sha: str, action: str) -> dict:
     if action in allowed_actions:
         return {"allowed": True, "reason": "permitted"}
     return {"allowed": False, "reason": "not_in_allowed_actions"}
+
+
+@mcp.tool(description="List registered Raw Intent Packet revisions.")
+def list_intents_tool() -> dict:
+    return {"intents": intent_registry.list_summaries()}
+
+
+@mcp.tool(description="Retrieve one registered Raw Intent Packet by intent_sha.")
+def get_intent_tool(intent_sha: str) -> dict:
+    try:
+        return intent_registry.read(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        _raise_intent_error(exc)
+
+
+@mcp.tool(description="Retrieve Raw Intent Packet ancestry nearest parent first.")
+def get_intent_lineage_tool(intent_sha: str) -> dict:
+    try:
+        intent_registry.read(intent_sha)
+        lineage = intent_registry.ancestors(intent_sha)
+    except intent_registry.IntentRegistryError as exc:
+        _raise_intent_error(exc)
+    return {"intent_sha": intent_sha, "ancestors": lineage}
+
+
+@mcp.tool(description="Diff two Raw Intent Packets by intent_sha or inline manifest.")
+def diff_intents_tool(left: Any, right: Any) -> dict:
+    try:
+        left_manifest = intent_registry.resolve_manifest(left, "left")
+        right_manifest = intent_registry.resolve_manifest(right, "right")
+    except intent_registry.IntentRegistryError as exc:
+        _raise_intent_error(exc)
+    return intent_registry.diff_manifests(left_manifest, right_manifest)
 
 
 def main() -> None:

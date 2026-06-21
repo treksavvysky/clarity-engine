@@ -92,7 +92,15 @@ Lint and compose remain side-effect-free.
 
 ## Current Boundary
 
-This release does not add Raw Intent MCP tools, promotion into Mission Packets,
-intent-to-mission link records, or UI changes. The existing `/intents/draft`
-endpoint remains unchanged and continues to produce a side-effect-free PCP-lite
-Mission Packet candidate.
+Read-only stdio MCP access is available through:
+
+- `list_intents_tool`
+- `get_intent_tool`
+- `get_intent_lineage_tool`
+- `diff_intents_tool`
+
+These tools delegate to the same registry and domain functions as HTTP. They do
+not add Raw Intent mutation, promotion into Mission Packets, intent-to-mission
+link records, external-context proxying, or UI changes. The existing
+`/intents/draft` endpoint remains unchanged and continues to produce a
+side-effect-free PCP-lite Mission Packet candidate.
