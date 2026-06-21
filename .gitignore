@@ -212,3 +212,5 @@ packets/intents/*
 !packets/intents/.gitkeep
 packets/links/*
 !packets/links/.gitkeep
+packets/proposals/*
+!packets/proposals/.gitkeep

@@ -13,17 +13,21 @@
   canonical `manifest.json`, `proposal.md`, and `proposal_sha` artifacts.
 - The canonical Eidolon proposal identity is
   `15e7418c61243da509799ee51298b41a672e366953ef3b0696707ed6713b76c6`.
-- The proposal contract cannot encode Raw Intent lifecycle mutation, readiness,
-  approval, promotion, enqueue, or execution. Proposal persistence, HTTP, MCP,
-  and browser review are not yet shipped.
+- `app/proposal_registry.py` stores immutable proposals under
+  `packets/proposals/<source_intent_sha>/<proposal_sha>/` and verifies proposal
+  identity, Markdown, source-directory binding, and the source Raw Intent.
+- The proposal contract and tools cannot encode Raw Intent lifecycle mutation,
+  readiness, approval, promotion, enqueue, or execution. Browser review and
+  proposal acceptance are not yet shipped.
 
 ## API Implementation State
-- A FastAPI application at `app/main.py` (v0.5.0) exposes:
+- A FastAPI application at `app/main.py` (v0.6.0) exposes:
   - `GET /healthz` returning `{ "status": "ok" }`.
   - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
   - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
   - Raw Intent lint, compose, register, list, get, ancestors, diff, grounding,
     clarification, approved promotion, and linked-mission operations.
+  - Agent Refinement Proposal lint, compose, register, list, and get operations.
   - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
   - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
   - `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, and `GET /packets/{sha}/ancestors` for registry and lineage operations.
@@ -41,6 +45,8 @@
 - Compose bind mounts `./packets/registry` to `/app/packets/registry` so the container and host checkout share the same runtime packet registry.
 - Compose also bind mounts `./packets/intents` and `./packets/links` for Raw
   Intent revisions and authoritative intent-to-mission links.
+- Compose bind mounts `./packets/proposals` for Agent Refinement Proposal
+  records.
 - Compose runs the service as configurable `CLARITY_UID`/`CLARITY_GID` values, defaulting to `1000:1000`, so bind-mounted registry files remain host-editable.
 
 ## Verified Execution (Observed)
@@ -157,15 +163,20 @@ All Stage-03 substages (03.1–03.3) are complete.
 All Stage-04 substages (04.1–04.2) are complete.
 
 ## Stage-05.1 MCP Tool Exposure
-- `app/mcp_server.py` exposes thirteen MCP tools over stdio.
+- `app/mcp_server.py` exposes eighteen MCP tools over stdio.
 - Mission Packet tools: `compose_packet_tool`, `lint_packet_tool`,
   `register_packet_tool`, `get_packet_tool`, `list_packets_tool`,
   `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
 - Read-only Raw Intent tools: `list_intents_tool`, `get_intent_tool`,
   `get_intent_lineage_tool`, `get_intent_missions_tool`, `diff_intents_tool`.
+- Agent Refinement Proposal tools:
+  `lint_refinement_proposal_tool`, `compose_refinement_proposal_tool`,
+  `register_refinement_proposal_tool`, `list_refinement_proposals_tool`, and
+  `get_refinement_proposal_tool`.
 - Tool handlers delegate to shared modules (`tools/compose_packet.py`,
-  `tools/lint_packet.py`, `app/registry.py`, and `app/intent_registry.py`) with
-  no transport-local domain logic.
+  `tools/lint_packet.py`, `tools/agent_refinement_proposal.py`,
+  `app/registry.py`, `app/intent_registry.py`, and
+  `app/proposal_registry.py`) with no transport-local domain logic.
 - Mission Packet and Raw Intent successful outputs match corresponding HTTP
   endpoint outputs in parity tests.
 - Entry point: `python -m app.mcp_server`.
@@ -264,8 +275,9 @@ Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manif
 - Docker Compose independently bind mounts `./packets/intents` and
   `./packets/links` with the same configurable UID/GID used by the Mission
   Packet registry.
-- Raw Intent MCP remains mutation-free and now includes
-  `get_intent_missions_tool`, bringing the server to thirteen tools.
+- Raw Intent MCP remains mutation-free and includes
+  `get_intent_missions_tool`; separate proposal tools bring the server to
+  eighteen tools without adding Raw Intent mutation.
 - Authentication, external-context proxying, MCP promotion, and UI migration
   are not implemented.
 - Existing PCP-lite behavior, packet hashes, registry paths, prior MCP tool

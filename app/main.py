@@ -14,15 +14,21 @@ from app import (
     intent_promotion,
     intent_registry,
     intent_workflow,
+    proposal_registry,
     registry,
 )
-from tools import compose_packet, lint_packet, raw_intent_packet
+from tools import (
+    agent_refinement_proposal,
+    compose_packet,
+    lint_packet,
+    raw_intent_packet,
+)
 
 UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 app = FastAPI(
     title="Clarity Engine",
-    version="0.5.0",
+    version="0.6.0",
     description=(
         "Intent and context contract service for human-AI workflows. "
         "Preserves ungrounded thought as Raw Intent Packets and composes grounded "
@@ -36,6 +42,10 @@ app = FastAPI(
         {
             "name": "intents",
             "description": "Draft Context Packet manifests from raw human intent.",
+        },
+        {
+            "name": "proposals",
+            "description": "Validate and store agent refinement proposals for human review.",
         },
         {
             "name": "health",
@@ -288,6 +298,104 @@ def _promotion_error(exc: intent_promotion.PromotionError) -> HTTPException:
         status_code=400,
         detail={"code": exc.code, "message": exc.message},
     )
+
+
+def _proposal_error(exc: proposal_registry.ProposalRegistryError) -> HTTPException:
+    status_code = 409
+    if isinstance(exc, proposal_registry.InvalidProposalError):
+        status_code = 400
+    elif isinstance(exc, proposal_registry.UnknownProposalError):
+        status_code = 404
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": exc.code, "message": exc.message},
+    )
+
+
+@app.post(
+    "/proposals/lint",
+    tags=["proposals"],
+    summary="Validate an Agent Refinement Proposal",
+    description="Side-effect-free validation. Does not mutate a Raw Intent revision.",
+)
+def lint_proposal_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    errors = agent_refinement_proposal.validate_manifest(manifest)
+    return {"ok": not errors, "errors": errors, "warnings": []}
+
+
+@app.post(
+    "/proposals/compose",
+    tags=["proposals"],
+    summary="Compose an Agent Refinement Proposal",
+    description="Returns deterministic proposal artifacts without registry writes.",
+)
+def compose_proposal_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        raise _proposal_error(
+            proposal_registry.InvalidProposalError(
+                "Agent Refinement Proposal manifest must be a JSON object."
+            )
+        )
+    try:
+        result = agent_refinement_proposal.compose_manifest(manifest)
+    except ValueError as exc:
+        raise _proposal_error(
+            proposal_registry.InvalidProposalError(str(exc))
+        ) from exc
+    return {
+        "manifest": result["manifest"],
+        "proposal_md": result["proposal_md"],
+        "proposal_sha": result["proposal_sha"],
+    }
+
+
+@app.post(
+    "/proposals/register",
+    tags=["proposals"],
+    summary="Register an immutable Agent Refinement Proposal",
+    description=(
+        "Persists a proposal bound to a verified Raw Intent. Registration does not "
+        "accept proposal material into Raw Intent lineage."
+    ),
+)
+def register_proposal_endpoint(manifest: Any = Body(...)) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        raise _proposal_error(
+            proposal_registry.InvalidProposalError(
+                "Agent Refinement Proposal manifest must be a JSON object."
+            )
+        )
+    try:
+        return proposal_registry.register(manifest)
+    except proposal_registry.ProposalRegistryError as exc:
+        raise _proposal_error(exc) from exc
+
+
+@app.get(
+    "/proposals",
+    tags=["proposals"],
+    summary="List registered Agent Refinement Proposals",
+)
+def list_proposals_endpoint(
+    source_intent_sha: str | None = Query(default=None),
+) -> dict[str, Any]:
+    try:
+        proposals = proposal_registry.list_summaries(source_intent_sha)
+    except proposal_registry.ProposalRegistryError as exc:
+        raise _proposal_error(exc) from exc
+    return {"proposals": proposals}
+
+
+@app.get(
+    "/proposals/{proposal_sha}",
+    tags=["proposals"],
+    summary="Retrieve a verified Agent Refinement Proposal",
+)
+def get_proposal_endpoint(proposal_sha: str) -> dict[str, Any]:
+    try:
+        return proposal_registry.read(proposal_sha)
+    except proposal_registry.ProposalRegistryError as exc:
+        raise _proposal_error(exc) from exc
 
 
 @app.post(

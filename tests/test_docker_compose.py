@@ -11,9 +11,11 @@ def test_compose_mounts_all_runtime_registries_with_shared_user_mapping():
     assert "./packets/registry:/app/packets/registry" in compose
     assert "./packets/intents:/app/packets/intents" in compose
     assert "./packets/links:/app/packets/links" in compose
+    assert "./packets/proposals:/app/packets/proposals" in compose
     assert "CLARITY_REGISTRY_ROOT: /app/packets/registry" in compose
     assert "CLARITY_INTENT_REGISTRY_ROOT: /app/packets/intents" in compose
     assert "CLARITY_INTENT_LINK_ROOT: /app/packets/links/intent-missions" in compose
+    assert "CLARITY_PROPOSAL_REGISTRY_ROOT: /app/packets/proposals" in compose
 
 
 def test_runtime_intent_records_are_ignored_but_placeholder_is_tracked():
@@ -25,3 +27,6 @@ def test_runtime_intent_records_are_ignored_but_placeholder_is_tracked():
     assert "packets/links/*" in gitignore
     assert "!packets/links/.gitkeep" in gitignore
     assert (ROOT / "packets" / "links" / ".gitkeep").exists()
+    assert "packets/proposals/*" in gitignore
+    assert "!packets/proposals/.gitkeep" in gitignore
+    assert (ROOT / "packets" / "proposals" / ".gitkeep").exists()

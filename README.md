@@ -119,9 +119,10 @@ curl -s -X POST http://127.0.0.1:8000/packets/enqueue \
 ### MCP server
 ```bash
 python -m app.mcp_server
-# stdio transport; exposes 12 tools:
+# stdio transport; exposes 18 tools:
 # Mission Packets: compose, lint, register, get, list, diff, enqueue, check_action
-# Raw Intents: list, get, lineage, diff
+# Raw Intents: list, get, lineage, linked missions, diff
+# Agent Refinement Proposals: lint, compose, register, list, get
 ```
 
 ### Using the MCP server from Claude Code
@@ -132,7 +133,7 @@ Prerequisite: the venv must exist so the configured command (`.venv/bin/python -
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
-Then open this repo in Claude Code and approve the server when prompted. The 12
+Then open this repo in Claude Code and approve the server when prompted. The 18
 tools become callable directly in-session.
 
 ### CLI tools
@@ -171,9 +172,10 @@ stable-ID clarification questions, and unresolved gaps tied to one exact Raw
 Intent SHA. They do not mutate Raw Intent state or grant readiness, approval,
 promotion, enqueue, or execution authority.
 
-See `docs/AGENT_REFINEMENT_PROPOSAL.md`. The current contract and CLI are
-side-effect-free; proposal persistence, HTTP, MCP, and browser review remain
-future cycles.
+See `docs/AGENT_REFINEMENT_PROPOSAL.md`. Proposals can be registered and read
+through HTTP or MCP under `packets/proposals/<source_intent_sha>/<proposal_sha>/`.
+This persistence does not mutate the source Raw Intent. Browser proposal review
+and acceptance remain a future cycle.
 
 ### Raw Intent HTTP API
 

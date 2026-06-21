@@ -16,6 +16,8 @@ Core operations include:
 - `POST /intents/{intent_sha}/clarifications`
 - `POST /intents/{intent_sha}/promote`
 - `GET /intents/{intent_sha}/missions`
+- `POST /proposals/lint`, `/proposals/compose`, and `/proposals/register`
+- `GET /proposals` and `/proposals/{proposal_sha}`
 
 `app/registry.py` stores Mission Packets. `app/intent_registry.py` independently
 stores immutable Raw Intent Packet revisions and enforces lifecycle lineage.
@@ -24,11 +26,14 @@ and centralizes `ready_for_mission` checks.
 `app/intent_promotion.py` validates approved Mission Packet candidates and
 coordinates retry-safe registration. `app/intent_links.py` stores and verifies
 authoritative append-only associations.
+`app/proposal_registry.py` independently stores immutable Agent Refinement
+Proposals bound to verified Raw Intent revisions.
 
-`app/mcp_server.py` exposes 13 stdio tools: eight existing Mission Packet tools
+`app/mcp_server.py` exposes 18 stdio tools: eight existing Mission Packet tools
 and five read-only Raw Intent tools (`list_intents_tool`, `get_intent_tool`,
-`get_intent_lineage_tool`, `get_intent_missions_tool`, `diff_intents_tool`).
-Raw Intent mutation and promotion are not exposed through MCP.
+`get_intent_lineage_tool`, `get_intent_missions_tool`, `diff_intents_tool`), plus
+five proposal tools for lint, compose, register, list, and get. Proposal
+registration does not mutate Raw Intents.
 
 ## Run locally
 1. Install dependencies from the repository root:

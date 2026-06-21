@@ -24,6 +24,9 @@ def isolated_registry(tmp_path, monkeypatch):
     monkeypatch.setenv(
         "CLARITY_INTENT_LINK_ROOT", str(tmp_path / "intent-links")
     )
+    monkeypatch.setenv(
+        "CLARITY_PROPOSAL_REGISTRY_ROOT", str(tmp_path / "proposal-registry")
+    )
     yield
 
 
@@ -63,6 +66,18 @@ def _intent_example() -> dict:
         / "raw_intent_packet_example.json"
     )
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _proposal_example(source_intent_sha: str) -> dict:
+    path = (
+        Path(mcp_server.__file__).resolve().parent.parent
+        / "packets"
+        / "examples"
+        / "agent_refinement_proposal_example.json"
+    )
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["source_intent_sha"] = source_intent_sha
+    return manifest
 
 
 def _promote_example(client) -> tuple[str, dict]:
@@ -334,6 +349,44 @@ def test_get_intent_missions_tool_exposes_unknown_intent_code():
     assert "unknown_intent" in error
 
 
+def test_proposal_tools_match_http(client):
+    source_sha = client.post(
+        "/intents/register", json=_intent_example()
+    ).json()["intent_sha"]
+    proposal = _proposal_example(source_sha)
+    assert _call(
+        "lint_refinement_proposal_tool", {"manifest": proposal}
+    ) == client.post("/proposals/lint", json=proposal).json()
+    assert _call(
+        "compose_refinement_proposal_tool", {"manifest": proposal}
+    ) == client.post("/proposals/compose", json=proposal).json()
+
+    registered = _call(
+        "register_refinement_proposal_tool", {"manifest": proposal}
+    )
+    proposal_sha = registered["proposal_sha"]
+    assert registered["registered"] is True
+    assert _call(
+        "list_refinement_proposals_tool",
+        {"source_intent_sha": source_sha},
+    ) == client.get(
+        "/proposals", params={"source_intent_sha": source_sha}
+    ).json()
+    assert _call(
+        "get_refinement_proposal_tool", {"proposal_sha": proposal_sha}
+    ) == client.get(f"/proposals/{proposal_sha}").json()
+
+
+def test_proposal_tools_expose_stable_errors(client):
+    proposal = _proposal_example("0" * 64)
+    assert "proposal_source_error" in _call_error(
+        "register_refinement_proposal_tool", {"manifest": proposal}
+    )
+    assert "unknown_proposal" in _call_error(
+        "get_refinement_proposal_tool", {"proposal_sha": "0" * 64}
+    )
+
+
 def test_server_lists_expected_tools():
     tools = _run(mcp_server.mcp.list_tools())
     names = {t.name for t in tools}
@@ -351,5 +404,10 @@ def test_server_lists_expected_tools():
         "get_intent_lineage_tool",
         "get_intent_missions_tool",
         "diff_intents_tool",
+        "lint_refinement_proposal_tool",
+        "compose_refinement_proposal_tool",
+        "register_refinement_proposal_tool",
+        "list_refinement_proposals_tool",
+        "get_refinement_proposal_tool",
     }.issubset(names)
-    assert len(names) == 13
+    assert len(names) == 18

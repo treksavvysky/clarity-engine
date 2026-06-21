@@ -48,10 +48,35 @@ The canonical Eidolon example identity is:
 15e7418c61243da509799ee51298b41a672e366953ef3b0696707ed6713b76c6
 ```
 
-## Current Boundary
+## Registry and Access
 
-The contract and CLI are side-effect-free. There is no proposal registry, HTTP
-endpoint, MCP proposal tool, or browser proposal review yet. Existing Raw Intent
-MCP tools remain read-only. Human-controlled grounding, clarification,
-readiness, approval, and promotion continue through the shipped browser and
-HTTP workflow.
+Registered proposals use a separate immutable namespace:
+
+```text
+packets/proposals/<source_intent_sha>/<proposal_sha>/manifest.json
+packets/proposals/<source_intent_sha>/<proposal_sha>/proposal.md
+```
+
+Set `CLARITY_PROPOSAL_REGISTRY_ROOT` to override the root. Registration is
+atomic and idempotent and requires a valid source Raw Intent. Reads revalidate
+the proposal contract, identity, Markdown, source-directory binding, and source
+Raw Intent.
+
+HTTP operations:
+
+- `POST /proposals/lint`
+- `POST /proposals/compose`
+- `POST /proposals/register`
+- `GET /proposals`
+- `GET /proposals/{proposal_sha}`
+
+MCP operations:
+
+- `lint_refinement_proposal_tool`
+- `compose_refinement_proposal_tool`
+- `register_refinement_proposal_tool`
+- `list_refinement_proposals_tool`
+- `get_refinement_proposal_tool`
+
+Proposal registration remains separate from Raw Intent mutation. Browser
+proposal review and acceptance are not yet shipped.

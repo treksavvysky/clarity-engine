@@ -8,10 +8,12 @@ services:
       - ./packets/registry:/app/packets/registry
       - ./packets/intents:/app/packets/intents
       - ./packets/links:/app/packets/links
+      - ./packets/proposals:/app/packets/proposals
     environment:
       CLARITY_REGISTRY_ROOT: /app/packets/registry
       CLARITY_INTENT_REGISTRY_ROOT: /app/packets/intents
       CLARITY_INTENT_LINK_ROOT: /app/packets/links/intent-missions
+      CLARITY_PROPOSAL_REGISTRY_ROOT: /app/packets/proposals
     healthcheck:
       test:
         [

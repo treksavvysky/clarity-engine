@@ -121,6 +121,10 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
   exact Raw Intent revision before human acceptance.
 - `tools/agent_refinement_proposal.py` validates and deterministically composes
   proposal artifacts without registry writes.
+- `app/proposal_registry.py` stores immutable proposals separately under
+  `packets/proposals/<source_intent_sha>/<proposal_sha>/`.
+- HTTP and MCP proposal operations must delegate to the same contract and
+  registry modules.
 - Proposals must not encode readiness, approval, promotion, enqueue, execution,
   or direct Raw Intent lifecycle changes.
 - Contract changes require synchronized schema, examples, tests,

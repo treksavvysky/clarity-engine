@@ -15,14 +15,16 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from app import intent_links, intent_registry, registry
-from tools import compose_packet, lint_packet
+from app import intent_links, intent_registry, proposal_registry, registry
+from tools import agent_refinement_proposal, compose_packet, lint_packet
 
 mcp = FastMCP(
     "clarity-engine",
     instructions=(
         "Clarity Engine MCP tools provide deterministic Mission Packet operations "
         "and read-only Raw Intent Packet list, get, lineage, linked-mission, and diff access. "
+        "Agent Refinement Proposal tools can validate and store review records but "
+        "cannot mutate Raw Intent lineage or grant readiness, approval, or execution authority. "
         "Mission Packet register/enqueue operations persist to packets/registry/. "
         "Raw Intent MCP operations do not mutate, promote, or retrieve external context."
     ),
@@ -59,6 +61,10 @@ def _raise_intent_error(exc: intent_registry.IntentRegistryError) -> None:
 
 
 def _raise_intent_link_error(exc: intent_links.IntentLinkError) -> None:
+    raise ValueError(f"{exc.code}: {exc.message}") from exc
+
+
+def _raise_proposal_error(exc: proposal_registry.ProposalRegistryError) -> None:
     raise ValueError(f"{exc.code}: {exc.message}") from exc
 
 
@@ -211,6 +217,62 @@ def diff_intents_tool(left: Any, right: Any) -> dict:
     except intent_registry.IntentRegistryError as exc:
         _raise_intent_error(exc)
     return intent_registry.diff_manifests(left_manifest, right_manifest)
+
+
+@mcp.tool(
+    description=(
+        "Validate an Agent Refinement Proposal without persistence or Raw Intent mutation."
+    )
+)
+def lint_refinement_proposal_tool(manifest: dict) -> dict:
+    errors = agent_refinement_proposal.validate_manifest(manifest)
+    return {"ok": not errors, "errors": errors, "warnings": []}
+
+
+@mcp.tool(
+    description=(
+        "Compose deterministic Agent Refinement Proposal artifacts without persistence."
+    )
+)
+def compose_refinement_proposal_tool(manifest: dict) -> dict:
+    try:
+        result = agent_refinement_proposal.compose_manifest(manifest)
+    except ValueError as exc:
+        _raise_proposal_error(proposal_registry.InvalidProposalError(str(exc)))
+    return {
+        "manifest": result["manifest"],
+        "proposal_md": result["proposal_md"],
+        "proposal_sha": result["proposal_sha"],
+    }
+
+
+@mcp.tool(
+    description=(
+        "Register an immutable proposal for human review. This does not mutate the "
+        "source Raw Intent or grant readiness, approval, promotion, enqueue, or execution."
+    )
+)
+def register_refinement_proposal_tool(manifest: dict) -> dict:
+    try:
+        return proposal_registry.register(manifest)
+    except proposal_registry.ProposalRegistryError as exc:
+        _raise_proposal_error(exc)
+
+
+@mcp.tool(description="List registered Agent Refinement Proposals, optionally by source intent.")
+def list_refinement_proposals_tool(source_intent_sha: str | None = None) -> dict:
+    try:
+        return {"proposals": proposal_registry.list_summaries(source_intent_sha)}
+    except proposal_registry.ProposalRegistryError as exc:
+        _raise_proposal_error(exc)
+
+
+@mcp.tool(description="Retrieve one verified Agent Refinement Proposal by proposal_sha.")
+def get_refinement_proposal_tool(proposal_sha: str) -> dict:
+    try:
+        return proposal_registry.read(proposal_sha)
+    except proposal_registry.ProposalRegistryError as exc:
+        _raise_proposal_error(exc)
 
 
 def main() -> None:
