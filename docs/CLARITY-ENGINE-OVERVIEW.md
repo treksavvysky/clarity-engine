@@ -1,21 +1,32 @@
-# Clarity Engine: Detailed Description
+# Clarity Engine: Overview & Detailed Description
 
-The **Clarity Engine** is the intent-refinement and mission-compilation layer of an cognitive ecosystem. Its purpose is to convert ambiguous human intention into structured, executable mission artifacts without losing context, constraints, doctrine, or strategic meaning.
+## 1. High-Level Arc and Main Objective
+The ultimate objective of our project is to **build an autonomous cognitive ecosystem that supports human intent, AI cognition, software execution, memory, and life operations.**
 
-It sits between raw thought and operational execution.
+The **Clarity Engine** is a small, specialized part of this ecosystem.
 
-Where **Mnemos** captures and organizes the human-facing memory, where **SMI** indexes durable cognitive state, where **Anamnesis** reconciles past context against present reality, and where **PCP** defines authoritative project truth, the Clarity Engine determines what the user is actually trying to do now and transforms that intent into a bounded mission packet.
+---
 
-The Clarity Engine is not memory, not execution, not orchestration, and not a task manager. It does not replace SMI, Fluxion, ACE, Fionn, Mnemos, or Anamnesis. Instead, it acts as the cognitive compiler between them.
+## 2. Clarity Engine Doctrine
+The Clarity Engine serves strictly as the **cognitive intent compiler** of the ACE/Cortex ecosystem.
 
-Its core function is:
+* **It does not store memory.** (Memory is handled by `Mnemos` and `SMI`).
+* **It does not execute work.** (Execution is handled by worker agents like Jules/Codex/Claude).
+* **It does not manage tasks directly.** (Orchestration is handled by task/job trackers like JCT).
 
-> **raw intent → clarified intent → grounded context → bounded mission packet → executable downstream work**
+Its sole job is to **clarify intent**.
 
-A Clarity Engine output should define the objective, scope, constraints, success criteria, relevant context, risks, dependencies, and the next actionable structure needed by ACE, Cortex OS, Fluxion, Fionn, or an execution agent.
+It takes raw human input, retrieved memory, present project truth (PCP), doctrine, constraints, and strategic state, and refines them into a structured mission packet suitable for downstream planning and execution.
 
-In plain terms:
+* **SMI** tells the system where meaning lives.
+* **Anamnesis** tells the system what past context still applies.
+* **PCP** tells the system what is currently true about a project.
+* **Mnemos** gives the human a human-facing cognitive workspace.
+* **The Clarity Engine** decides what the intent means *now* and preserves the bridge between thought and action.
 
-> The Clarity Engine turns “I need to do something about this” into “Here is the precise mission, why it matters, what context applies, what boundaries exist, and what should happen next.”
+---
 
-Its strategic role is to prevent cognitive sprawl. It keeps vague ambition from becoming disconnected tasks, keeps old context from overriding present reality, and ensures that action begins from clarified intent rather than impulse, noise, or stale memory.
+## 3. DevOps vs. Strategic Intent Separation (Routing & Diagnosis)
+A key failure mode is conflating strategic intent/mission definition with continuous DevOps tasks (bug fixing, refactoring, code formatting, CI/CD setup, ticket management). 
+
+Clarity Engine is designed to capture high-level strategic intentions. It is **not** a DevOps issue tracker or ticket queue. DevOps continuous improvement tasks belong in their respective dedicated systems (issue trackers, product docs, CI pipelines). Clarity Engine diagnoses and flags incoming DevOps-specific tasks to route them correctly, keeping the engine focused on strategic clarification.

@@ -30,16 +30,14 @@ def test_intents_draft_returns_linted_manifest_without_registering(client):
     assert payload["registered"] is False
 
     manifest = payload["manifest"]
-    assert manifest["stage"] == "Stage-07"
-    assert manifest["substage"] == "raw-intent-draft"
-    assert "Raw intent received: I should work on code-server." in manifest["current_reality"]
-    assert "Caller supplied context: code-server is part of the active dev environment." in manifest["current_reality"]
+    assert manifest["stage"] == "Strategic Clarification"
+    assert manifest["substage"] == "Clarified Intent"
+    assert "Raw intent captured: I should work on code-server." in manifest["current_reality"]
+    assert "code-server is part of the active dev environment." in manifest["current_reality"]
     assert "Do not change code-server configuration yet." in manifest["constraints"]
-    assert "Route through: SMI -> Clarity Engine -> Infrastructure Registry." in manifest["constraints"]
-    assert (
-        "Smallest next action: Create a short inventory note for code-server "
-        "that records current state, access path, known constraint, and first improvement target."
-    ) in manifest["required_artifacts"]
+    assert "Route: SMI -> Clarity Engine -> Infrastructure Registry." in manifest["constraints"]
+    assert "Strategic mission packet for: code-server" in manifest["required_artifacts"]
+    assert "Smallest next action: Create a short strategy note for 'code-server' defining access path, constraints, and first milestone." in manifest["required_artifacts"]
     assert registry.read(payload["context_sha"]) is None
 
 
@@ -69,3 +67,16 @@ def test_intents_draft_is_deterministic(client):
     assert first.status_code == 200
     assert second.status_code == 200
     assert first.json() == second.json()
+
+
+def test_intents_draft_devops_diagnosis_warning(client):
+    body = {"raw_intent": "Please fix a bug in the build pipeline."}
+    response = client.post("/intents/draft", json=body)
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    warnings = payload["warnings"]
+    assert any("DevOps Route" in w for w in warnings)
+    manifest = payload["manifest"]
+    assert "DIAGNOSIS WARNING: This intent relates to DevOps continuous improvement (issue tracker) rather than strategic design." in manifest["current_reality"]
+    assert "Route: DevOps Issue Tracker -> Continuous Improvement Cycle." in manifest["constraints"]

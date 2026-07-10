@@ -1,18 +1,16 @@
 # Clarity Engine Mission (Extended)
 
-Clarity Engine exists to make intent and context portable across humans and agents. It does this by generating context packets that are unambiguous, testable, and easy to audit so contributors can align quickly without rereading entire histories.
+Clarity Engine exists to preserve the bridge between human thought and strategic action. It converts messy raw intent into a structured, bounded mission packet to align contributors without cognitive drift.
 
-## Principles
-- **Contract-first:** Templates, schemas, and manifests define the source of truth for every packet.
-- **Deterministic output:** Composition and linting tools should produce stable results for the same inputs.
-- **Traceability:** Packets carry the mission, constraints, and acceptance criteria needed to reason about changes and verify outcomes.
-- **Agent-friendly:** Outputs are structured so MCP/LLM agents can consume, validate, and act without guesswork.
+This tool is a specialized component of our ultimate objective: **to build an autonomous cognitive ecosystem supporting human intent, AI cognition, software execution, memory, and life operations.**
 
-## Implementation Status
-Stages 01–06 are shipped. The HTTP service, MCP server, content-addressed registry, JCT enqueue envelope, and browser UI all exist. See `current_reality.md` for the facts-only inventory.
+## Core Principles
+* **Intent-Centric:** Capture raw cognitive seeds before they are flattened into chores.
+* **Diagnosis-First:** Diagnose raw intents to ensure DevOps issue tracking, memory management, and execution are routed to their correct external tools.
+* **Contract-First:** Templates, schemas, and manifests define the boundary of a mission.
+* **Human-in-the-Loop:** Registry writes and downstream routing are gated behind human review and sign-off.
 
-### Clarity Engine is not a workflow runner.
-It does not execute tasks or orchestrate agents; it produces the contracts that other systems use. Its purpose is to externalize intent, not to interpret or act on that intent.
-
-### Context Packets are the atomic unit of alignment.
-Everything Clarity Engine emits is designed to be portable, reviewable, and archivable—so that humans and agents can resume work from the packet alone, without needing operational memory or historical context.
+## Boundaries & Non-Goals
+* **No Task Management:** We explicitly avoid task tracking, queuing, or execution orchestration (deferred to JCT and worker agents).
+* **No Database or Memory Stores:** Durable memory indexing is deferred to SMI/Mnemos.
+* **No DevOps Bug Tracking:** Continuous improvement, debugging, and code refactoring tasks are routed to standard issue trackers.

@@ -1,48 +1,31 @@
-# What is the clarity engine?
+# What is the Clarity Engine?
 
-Clarity Engine is your “intent → execution packet” factory.
+Clarity Engine is your **strategic intent → mission packet** compiler.
 
-In your ecosystem, it sits upstream of agents like Jules/Codex/Claude and upstream of orchestration (JCT / control tower). Its job is to take messy human desire (“fix X, ship Y, investigate Z”) and turn it into a standardized, machine-runnable spec that other agents can execute without improvising the wrong thing.
+In our broader goal to **build an autonomous cognitive ecosystem that supports human intent, AI cognition, software execution, memory, and life operations**, the Clarity Engine plays a specific, upstream role. It takes raw, unstructured human impulses and compiles them into a structured strategic mission packet.
 
-What it produces: a Context Packet
+---
 
-Think of a Context Packet as a contract between you (the operator) and the swarm:
-	•	Objective: one sentence, outcome-focused.
-	•	Acceptance criteria: what “done” means in observable terms (tests pass, endpoint exists, PR includes docs, etc.).
-	•	Constraints snapshot: time budget, allowed network, secrets policy, environment assumptions.
-	•	Allowed actions/tools: what the agent is permitted to do (git ops, docker, HTTP calls, etc.).
-	•	Evidence requirements: what the agent must return to prove work (diff/PR link, test output, logs, artifacts).
-	•	Risk flags: ambiguity, missing info, high blast radius, needs human sign-off.
+## What it produces: A Mission Packet
+Rather than a task list, the Clarity Engine produces a strategic contract defining the mission:
+* **Objective:** A single outcome-focused sentence.
+* **Constraints:** Time budgets, secrets policies, allowed tools, and execution boundaries.
+* **Acceptance Criteria:** What "done" means in observable terms.
+* **Risk Flags:** Indicators of ambiguity, missing context, or high blast radius.
 
-Why it matters (the non-poetic version)
+---
 
-Without Clarity Engine, you get:
-	•	“Agent creativity” where you wanted determinism.
-	•	Hidden assumptions.
-	•	Work that sounds right but can’t be verified.
+## What is Deferred & Handled Externally
+To prevent Clarity Engine from becoming an redundant task manager or DevOps tracker:
+1. **DevOps & Continuous Improvement:** Bug fixes, refactoring, code pipeline setup, and issue tickets belong in dedicated DevOps issue tracking tools, not Clarity Engine.
+2. **Work Execution:** Actually executing the mission is deferred to worker agents (like Jules/Codex/Claude).
+3. **Task Orchestration:** Scheduling, queuing, and managing task states are deferred to systems like JCT.
+4. **Memory Stores:** Memory indexing and retention are handled by SMI and Mnemos.
 
-With it, you get:
-	•	Repeatability: tasks become runnable units, not vibes.
-	•	Auditability: you can inspect why a decision was made.
-	•	Composability: packets can be queued, batched, retried, delegated.
-	•	Safety: explicit constraints prevent accidental policy or security violations.
+---
 
-Where it fits architecturally
-
-A clean pipeline looks like:
-
-Human Intent → Clarity Engine → Context Packet → JCT (queue/state) → Worker Agent (Jules/Codex/etc.) → Evidence/Artifacts → Review
-
-Clarity Engine is the translation layer that lets “George language” reliably become “agent instructions” without losing meaning or gaining hallucinated scope.
-
-A useful mental model
-
-Clarity Engine is to your swarm what a compiler frontend is to a CPU:
-	•	It parses ambiguous input,
-	•	resolves structure,
-	•	enforces rules,
-	•	and emits a normalized intermediate representation (your Context Packet) that downstream systems can execute.
-
-If you treat it that way, you’ll naturally add things like linting (ambiguity detection), type checks (missing constraints), and “build errors” (cannot proceed without X).
-
-If you want, I can sketch a minimal v1 Context Packet schema (fields + validation rules) that fits cleanly with your JCT /tasks/enqueue shape and your “evidence & observability lane” so it becomes immediately usable.
+## Route & Diagnosis Boundary
+Clarity Engine runs a diagnosis step on incoming raw intent:
+* If the intent is diagnosed as a DevOps/CI task, it is flagged for external routing.
+* If the intent is a strategic design/mission, it compiles it into a linted draft.
+* No packets are automatically registered or enqueued; human review is required before registry writes.

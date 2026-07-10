@@ -51,50 +51,55 @@
 <body>
 <header>
   <h1>Clarity Engine</h1>
-  <div class="subtitle">Intent → Context Packet compiler</div>
+  <div class="subtitle">Intent Capture & Mission Compiler</div>
 </header>
 <nav>
-  <button class="tab-btn active" data-tab="browser">Browser</button>
-  <button class="tab-btn" data-tab="intent">Intent</button>
-  <button class="tab-btn" data-tab="diff">Diff</button>
-  <button class="tab-btn" data-tab="editor">Editor</button>
+  <button class="tab-btn active" data-tab="intent">Intent Capture</button>
+  <button class="tab-btn" data-tab="browser">Registered Missions</button>
+  <button class="tab-btn advanced-only" data-tab="diff" style="display: none;">Diff</button>
+  <button class="tab-btn advanced-only" data-tab="editor" style="display: none;">Editor</button>
+  <button id="toggle-advanced" style="margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;">Enable Advanced Mode</button>
 </nav>
 <main>
-  <section id="tab-browser" class="tab active">
+  <section id="tab-browser" class="tab">
     <div class="row">
       <div class="panel">
-        <h2>Registered Packets <button class="secondary" id="refresh" style="float:right;padding:4px 10px">↻</button></h2>
+        <h2>Registered Missions <button class="secondary" id="refresh" style="float:right;padding:4px 10px">↻</button></h2>
         <ul class="packet-list" id="packet-list"><li class="empty">Loading…</li></ul>
       </div>
       <div class="panel">
         <h2>Detail</h2>
-        <div id="detail"><div class="empty">Select a packet to view its manifest and markdown.</div></div>
+        <div id="detail"><div class="empty">Select a registered mission to view its details.</div></div>
       </div>
     </div>
   </section>
 
-  <section id="tab-intent" class="tab">
+  <section id="tab-intent" class="tab active">
     <div class="row" style="grid-template-columns: minmax(340px, 460px) 1fr;">
       <div class="panel">
-        <h2>Raw Intent</h2>
-        <label for="intent-raw">Intent</label>
-        <textarea id="intent-raw" style="height:120px;" placeholder="I should work on code-server."></textarea>
-        <label for="intent-context">Context bullets (one per line)</label>
-        <textarea id="intent-context" style="height:120px;" placeholder="code-server is part of the active dev environment."></textarea>
-        <label for="intent-constraints">Constraint bullets (one per line)</label>
-        <textarea id="intent-constraints" style="height:120px;" placeholder="Do not change code-server configuration yet."></textarea>
-        <label for="intent-route">Route</label>
-        <input id="intent-route" value="SMI, Clarity Engine, Infrastructure Registry" aria-label="Route">
-        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <h2>Raw Intent Capture</h2>
+        <label for="intent-raw">Messy Intent / Impulse</label>
+        <textarea id="intent-raw" style="height:120px;" placeholder="e.g., I want to draft a strategy for our new memory layer."></textarea>
+        <label for="intent-context">Context Bullets (what this connects to - one per line)</label>
+        <textarea id="intent-context" style="height:120px;" placeholder="e.g., Memory layer sits between SMI and Mnemos."></textarea>
+        <label for="intent-constraints">Constraint Bullets (what to avoid - one per line)</label>
+        <textarea id="intent-constraints" style="height:120px;" placeholder="e.g., Do not write any code yet."></textarea>
+        
+        <div class="advanced-only-block" style="display: none;">
+          <label for="intent-route">Suggested Route</label>
+          <input id="intent-route" value="SMI, Clarity Engine, Strategic Plan" aria-label="Route">
+        </div>
+        
+        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="primary" id="intent-draft">Draft Mission</button>
-          <button class="secondary" id="intent-load-example">Load example</button>
-          <button class="primary" id="intent-register" disabled>Register Draft</button>
+          <button class="secondary" id="intent-load-example">Load Example</button>
+          <button class="primary" id="intent-register" disabled>Approve & Save to Registry</button>
           <span id="intent-status" style="color:var(--muted);align-self:center;margin-left:8px;"></span>
         </div>
       </div>
       <div class="panel">
         <h2>Draft Mission Packet</h2>
-        <div id="intent-response"><div class="empty">Write raw intent and draft a mission packet.</div></div>
+        <div id="intent-response"><div class="empty">Write raw intent and click "Draft Mission".</div></div>
       </div>
     </div>
   </section>
@@ -131,7 +136,7 @@
           <button class="secondary" id="editor-lint">Lint</button>
           <button class="secondary" id="editor-compose">Compose</button>
           <button class="primary" id="editor-register">Register</button>
-          <button class="primary" id="editor-enqueue">Enqueue</button>
+          <button class="primary" id="editor-enqueue" style="display: none;">Enqueue</button>
           <span id="editor-status" style="color:var(--muted);align-self:center;margin-left:8px;"></span>
         </div>
       </div>
@@ -145,6 +150,8 @@
 <script>
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+let isAdvanced = false;
 
 async function api(method, path, body) {
   const res = await fetch(path, {
@@ -163,6 +170,19 @@ function tabSwitcher() {
     $$('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
     $$('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + btn.dataset.tab));
   }));
+}
+
+function updateAdvancedVisibility() {
+  $$('.advanced-only').forEach(el => {
+    el.style.display = isAdvanced ? 'block' : 'none';
+  });
+  $$('.advanced-only-block').forEach(el => {
+    el.style.display = isAdvanced ? 'block' : 'none';
+  });
+  const toggleBtn = $('#toggle-advanced');
+  if (toggleBtn) {
+    toggleBtn.textContent = isAdvanced ? 'Disable Advanced Mode' : 'Enable Advanced Mode';
+  }
 }
 
 let selectedSha = null;
@@ -195,13 +215,49 @@ async function selectPacket(sha) {
   $$('#packet-list li').forEach(li => li.classList.remove('selected'));
   try {
     const packet = await api('GET', '/packets/' + sha);
+    const manifest = packet.manifest;
+    
     $('#detail').innerHTML = `
-      <div><strong>context_sha:</strong> <code>${sha}</code></div>
-      <h3 style="margin-top:16px">Manifest</h3>
-      <pre>${escapeHtml(JSON.stringify(packet.manifest, null, 2))}</pre>
-      <h3>Rendered Markdown</h3>
-      <pre>${escapeHtml(packet.packet_md)}</pre>
+      <div style="background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
+          <div>
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">PROJECT MISSION</span>
+            <h3 style="margin: 4px 0 0 0; color: var(--accent); font-size: 16px;">${escapeHtml(manifest.project)}</h3>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">SHA-256</span>
+            <div style="margin-top: 4px; font-size: 12px; font-family: monospace;"><code>${sha.slice(0, 16)}…</code></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--fg);">Strategic Objective</h4>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--fg); font-style: italic;">"${escapeHtml(manifest.mission)}"</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--muted);">Constraints</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--fg);">
+            ${(manifest.constraints || []).map(c => `<li>${escapeHtml(c)}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--muted);">Observable Acceptance Criteria</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--fg); list-style-type: square;">
+            ${(manifest.acceptance || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="advanced-only-block" style="display: none; border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 12px; color: var(--muted);">Raw Manifest (JSON)</h4>
+          <pre style="margin: 0; font-size: 11px;">${escapeHtml(JSON.stringify(manifest, null, 2))}</pre>
+          <h4 style="margin: 16px 0 6px 0; font-size: 12px; color: var(--muted);">Rendered Markdown</h4>
+          <pre style="margin: 0; font-size: 11px;">${escapeHtml(packet.packet_md)}</pre>
+        </div>
+      </div>
     `;
+    updateAdvancedVisibility();
   } catch (err) {
     $('#detail').innerHTML = `<div class="error">Load failed: ${err.status || err}</div>`;
   }
@@ -256,26 +312,96 @@ function routeFromInput() {
 
 function renderIntentDraft(payload) {
   const manifest = payload.manifest;
-  const status = payload.ok
-    ? '<span style="color:var(--added)">lint ok</span>'
-    : '<span class="error">lint errors</span>';
+  
+  let alertHtml = '';
+  if (payload.warnings && payload.warnings.length) {
+    const devopsWarnings = payload.warnings.filter(w => w.includes("DevOps Route"));
+    const otherWarnings = payload.warnings.filter(w => !w.includes("DevOps Route"));
+    
+    if (devopsWarnings.length) {
+      alertHtml += `
+        <div style="background: rgba(247, 118, 142, 0.15); border: 1px solid var(--removed); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+          <h4 style="margin: 0 0 6px 0; color: var(--removed); font-size: 13px;">⚠️ ROUTING RECOMMENDATION: DEVOPS DETECTED</h4>
+          <p style="margin: 0; font-size: 12px; line-height: 1.4;">
+            ${escapeHtml(devopsWarnings[0].replace("[warning] DevOps Route: ", ""))}
+          </p>
+        </div>
+      `;
+    }
+    
+    if (otherWarnings.length) {
+      alertHtml += `
+        <div style="background: rgba(224, 175, 104, 0.15); border: 1px solid var(--changed); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+          <h4 style="margin: 0 0 6px 0; color: var(--changed); font-size: 13px;">⚠️ LINT WARNINGS</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.4;">
+            ${otherWarnings.map(w => `<li>${escapeHtml(w.replace("[warning] ", ""))}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+  }
+
+  if (payload.errors && payload.errors.length) {
+    alertHtml += `
+      <div style="background: rgba(247, 118, 142, 0.15); border: 1px solid var(--removed); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: var(--removed); font-size: 13px;">❌ CRITICAL ERRORS</h4>
+        <ul style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.4;">
+          ${payload.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  const nextAction = manifest.notes ? manifest.notes.find(n => n.startsWith("Smallest next action:")) || '' : '';
+  const cleanedNextAction = nextAction.replace("Smallest next action: ", "");
+
   $('#intent-response').innerHTML = `
-    <div><strong>Status:</strong> ${status} <span class="sha">${payload.context_sha}</span></div>
-    ${payload.warnings.length ? `<h3>Warnings</h3><pre>${escapeHtml(payload.warnings.join('\n'))}</pre>` : ''}
-    ${payload.errors.length ? `<h3>Errors</h3><pre class="error">${escapeHtml(payload.errors.join('\n'))}</pre>` : ''}
-    <h3>Mission</h3>
-    <pre>${escapeHtml(manifest.mission)}</pre>
-    <h3>Current Reality</h3>
-    <pre>${escapeHtml((manifest.current_reality || []).map(item => '- ' + item).join('\n'))}</pre>
-    <h3>Constraints</h3>
-    <pre>${escapeHtml((manifest.constraints || []).map(item => '- ' + item).join('\n'))}</pre>
-    <h3>Acceptance</h3>
-    <pre>${escapeHtml((manifest.acceptance || []).map(item => '- ' + item).join('\n'))}</pre>
-    <h3>Notes</h3>
-    <pre>${escapeHtml((manifest.notes || []).map(item => '- ' + item).join('\n'))}</pre>
-    <h3>Manifest JSON</h3>
-    <pre>${escapeHtml(JSON.stringify(manifest, null, 2))}</pre>
+    ${alertHtml}
+    <div style="background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 20px;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">PROJECT MISSION</span>
+          <h3 style="margin: 4px 0 0 0; color: var(--accent); font-size: 16px;">${escapeHtml(manifest.project)}</h3>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">VERSION</span>
+          <div style="margin-top: 4px; font-size: 12px;">${escapeHtml(manifest.version)}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--fg);">Strategic Objective</h4>
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--fg); font-style: italic;">"${escapeHtml(manifest.mission)}"</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--muted);">Constraints</h4>
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--fg);">
+          ${(manifest.constraints || []).map(c => `<li>${escapeHtml(c)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--muted);">Observable Acceptance Criteria</h4>
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--fg); list-style-type: square;">
+          ${(manifest.acceptance || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
+        </ul>
+      </div>
+
+      ${cleanedNextAction ? `
+      <div style="background: rgba(122, 162, 247, 0.1); border: 1px solid var(--accent); border-radius: 4px; padding: 12px; margin-bottom: 16px;">
+        <h4 style="margin: 0 0 4px 0; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px;">Smallest Next Action</h4>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--fg); font-weight: bold;">${escapeHtml(cleanedNextAction)}</p>
+      </div>
+      ` : ''}
+
+      <div class="advanced-only-block" style="display: none; border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px;">
+        <h4 style="margin: 0 0 6px 0; font-size: 12px; color: var(--muted);">Raw Draft Manifest (JSON)</h4>
+        <pre style="margin: 0; font-size: 11px;">${escapeHtml(JSON.stringify(manifest, null, 2))}</pre>
+      </div>
+    </div>
   `;
+  updateAdvancedVisibility();
 }
 
 function renderIntentError(err) {
@@ -311,12 +437,16 @@ async function registerIntentDraft() {
   status.textContent = 'Registering…';
   try {
     const result = await api('POST', '/packets/register', intentDraftManifest);
-    status.textContent = result.registered ? 'Registered.' : 'Already registered.';
+    status.textContent = '';
+    const statusMsg = result.registered ? 'Successfully Registered!' : 'Already Registered.';
     $('#intent-response').innerHTML = `
-      <div><strong>Registered:</strong> ${result.registered}</div>
-      <div><strong>context_sha:</strong> <code>${result.context_sha}</code></div>
-      <h3>Manifest JSON</h3>
-      <pre>${escapeHtml(JSON.stringify(intentDraftManifest, null, 2))}</pre>
+      <div style="background: rgba(158, 206, 106, 0.15); border: 1px solid var(--added); border-radius: 6px; padding: 20px; text-align: center;">
+        <h3 style="color: var(--added); margin: 0 0 10px 0;">🎉 ${statusMsg}</h3>
+        <p style="margin: 0 0 15px 0; font-size: 13px;">The strategic mission has been verified and stored in the content-addressed registry.</p>
+        <div style="font-size: 12px; color: var(--muted); font-family: monospace;">
+          SHA-256: <code>${result.context_sha}</code>
+        </div>
+      </div>
     `;
     selectedSha = result.context_sha;
     loadPackets();
@@ -405,12 +535,16 @@ async function editorAction(label, method, path) {
 }
 
 tabSwitcher();
+$('#toggle-advanced').addEventListener('click', () => {
+  isAdvanced = !isAdvanced;
+  updateAdvancedVisibility();
+});
 $('#refresh').addEventListener('click', loadPackets);
 $('#intent-load-example').addEventListener('click', () => {
-  $('#intent-raw').value = 'I should work on code-server.';
-  $('#intent-context').value = 'code-server is part of the active dev environment.';
-  $('#intent-constraints').value = 'Do not change code-server configuration yet.';
-  $('#intent-route').value = 'SMI, Clarity Engine, Infrastructure Registry';
+  $('#intent-raw').value = 'I want to draft a strategy for our new memory layer.';
+  $('#intent-context').value = 'Memory layer sits between SMI and Mnemos.';
+  $('#intent-constraints').value = 'Do not write any code yet.';
+  $('#intent-route').value = 'SMI, Clarity Engine, Strategic Plan';
 });
 $('#intent-draft').addEventListener('click', draftIntent);
 $('#intent-register').addEventListener('click', registerIntentDraft);
