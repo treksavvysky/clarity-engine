@@ -54,3 +54,33 @@ The following areas are deferred from the engine and handled externally:
 - **Full SMI/PCP/Anamnesis integration** (SMI/Anamnesis are separate systems).
 - **Multi-agent execution** (execution is handled by worker agents like Jules/Codex/Claude).
 - **The Intent Router** (complex automated routing is deferred; manual/diagnosed route select remains).
+
+### 5.1 Intelligence Engine Interface (Deferred Specification)
+Future MCP servers, custom GPTs, or connected apps serving as the Clarity Engine interpreter should align with the following request/response schema contract:
+
+**Draft Request (Input):**
+```json
+{
+  "raw_intent": "...",
+  "human_constraints": "...",
+  "additional_context": ["..."],
+  "route": ["..."],
+  "known_project_context": "...",
+  "desired_output_mode": "diagnosis | mission | packet | review"
+}
+```
+
+**Draft Response (Output):**
+```json
+{
+  "diagnosis": "...",
+  "clarified_intent": "...",
+  "mission": "...",
+  "path": "engineering | lifeops | mixed",
+  "smallest_next_action": "...",
+  "packet_draft": {},
+  "review_required": true
+}
+```
+*Note: The first user-facing layer serving these outputs must be presented in plain, readable language.*
+
