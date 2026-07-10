@@ -112,4 +112,5 @@ Tools and schema may be extended with additive changes following these 2.0 rules
 ## Workflow
 
 - **Commit after each completed task, change, or substage.** Make sure to commit immediately after completing any task or change without waiting for a separate prompt. Use descriptive subject lines (e.g. `Implement Salvage Audit rewrites`) and describe what changed and why in the body. This keeps the history auditable and lets reviewers trace work to its plan in [docs/vision/](file:///home/architect/cognition/clarity-engine/docs/vision/).
+- **Track progress in the Roadmap:** For Clarity Engine 2.0 development, track progress in [CLARITY-ENGINE-2.0-ROADMAP.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-ROADMAP.md). Mark each completed item with `[x]`, and append the git commit hash and a one-liner what was done under the *Evidence* line of the corresponding task.
 - Run the test suite before committing; the suite must be green at every commit on `main`.
