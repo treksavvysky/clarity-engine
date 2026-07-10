@@ -6,7 +6,7 @@ This file provides guidance to Gemini CLI when working with code in this reposit
 
 Clarity Engine provides tools to compose, lint, and emit **Context Packets** — standardized, testable prompts for human–AI and agentic workflows. The project ensures work stays aligned and auditable by producing deterministic, schema-validated packet artifacts.
 
-**Current Stage:** All documented stages through Stage-07.2 shipped. HTTP API, MCP server, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, static browser UI, raw-intent draft endpoint, and Intent UI tab are all in place. See `docs/vision/current_reality.md` for the full inventory.
+**Current Reality:** Clarity Engine operates as **Clarity Engine Lite**. Going forward, focus strictly on intent salvage and fixing internals to make the platform more human-friendly, avoiding task-manager drift. Refer to [docs/vision/current_reality.md](file:///home/architect/cognition/clarity-engine/docs/vision/current_reality.md) for the active facts, baseline features, and deferred integrations.
 
 ## Commands
 
@@ -111,5 +111,5 @@ Tools and schema may be extended with additive changes:
 
 ## Workflow
 
-- **Commit after each completed substage or discrete task.** One substage = one commit. Use the Stage-XX.Y label in the subject line (e.g. `Implement Stage-03.2: Packet Diffing`) and describe what changed and why in the body. This keeps the history auditable and lets reviewers trace work to its plan in `docs/vision/`.
+- **Commit after each completed task, change, or substage.** Make sure to commit immediately after completing any task or change without waiting for a separate prompt. Use descriptive subject lines (e.g. `Implement Salvage Audit rewrites`) and describe what changed and why in the body. This keeps the history auditable and lets reviewers trace work to its plan in [docs/vision/](file:///home/architect/cognition/clarity-engine/docs/vision/).
 - Run the test suite before committing; the suite must be green at every commit on `main`.
