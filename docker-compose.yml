@@ -1,0 +1,21 @@
+# Clarity Engine as a dev container.
+#
+#   docker compose up -d --build
+#   curl http://localhost:8010/healthz
+#
+# Source is bind-mounted so uvicorn --reload picks up edits made on the
+# host; the registry (packets/registry/, gitignored) persists there too
+# since it's inside the mounted tree.
+#
+# Not joined to the codejourney-proxy network — this service has no public
+# vhost today. Add that network + a proxy entry if it needs to be exposed.
+services:
+  clarity-engine:
+    build: .
+    image: clarity-engine
+    container_name: clarity-engine
+    restart: unless-stopped
+    ports:
+      - "8010:8000"
+    volumes:
+      - .:/app
