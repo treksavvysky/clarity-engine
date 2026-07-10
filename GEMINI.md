@@ -4,9 +4,9 @@ This file provides guidance to Gemini CLI when working with code in this reposit
 
 ## Project Overview
 
-Clarity Engine provides tools to compose, lint, and emit **Context Packets** — standardized, testable prompts for human–AI and agentic workflows. The project ensures work stays aligned and auditable by producing deterministic, schema-validated packet artifacts.
+Clarity Engine exists to **reduce the cognitive load between raw human intent and aligned strategic action.** It does not exist to create packets; mission packets are downstream artifacts of clarity, not the definition of clarity itself.
 
-**Current Reality:** Clarity Engine operates as **Clarity Engine Lite**. Going forward, focus strictly on intent salvage and fixing internals to make the platform more human-friendly, avoiding task-manager drift. Refer to [docs/vision/current_reality.md](file:///home/architect/cognition/clarity-engine/docs/vision/current_reality.md) for the active facts, baseline features, and deferred integrations.
+**Current Reality:** Clarity Engine operates as **Clarity Engine Lite**. Going forward, focus strictly on intent salvage and human-first 2.0 design directions, avoiding task-manager drift. All work must align with [docs/vision/current_reality.md](file:///home/architect/cognition/clarity-engine/docs/vision/current_reality.md) and [docs/vision/CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md).
 
 ## Commands
 
@@ -96,18 +96,18 @@ Tests use FastAPI's `TestClient` via the `client` fixture in `conftest.py`. The 
 
 ## Evolution Policy
 
-Tools and schema may be extended with additive changes:
-- `tools/lint_packet.py` — Add new warnings (no breaking changes to existing validation)
-- `tools/compose_packet.py` — Add new rendering (preserve deterministic output)
-- `pcp_lite.schema.json` — Add optional fields (required fields need migration)
-- `CONTEXT_PACKET_TEMPLATE.md` — Keep aligned with schema
+Tools and schema may be extended with additive changes following these 2.0 rules:
+- **Conversational 5-Question Capture:** UI structures raw intent capture around the 5 questions.
+- **4-Step Human-First Output:** Outputs plain-language diagnosis, clarified mission, and ephemeral smallest next move. Detailed packet manifest is secondary background metadata.
+- **One-Intent / One-Mission Rule:** A single raw intent maps 1-to-1 with a strategic mission, preventing premature plan decomposition.
 
 ## Constraints
 
-- **No database, auth, or outbound calls**: Persistence is filesystem-only under `packets/registry/<sha>/` (Stage-03+). Compose and lint endpoints remain side-effect-free.
-- **Deterministic outputs**: Same manifest input must produce identical outputs
-- **No network dependencies**: CI and tests must work offline
-- **Minimal dependencies**: FastAPI, Uvicorn, pytest, and the `mcp` SDK (Stage-05+) are approved. New deps require a stage-mission note.
+- **Decoupled Loops:** Clarity Engine does NOT manage tasks, checklists, or continuous-improvement loops (PDCA/QRCI/Hoshin loops are out-of-scope; handled externally).
+- **No Database or Auth:** Persistence is filesystem-only under `packets/registry/<sha>/`. Compose and lint endpoints remain side-effect-free.
+- **Deterministic Outputs:** Same input intent compiles to identical outputs.
+- **No Network Dependencies:** CI and tests must work offline.
+- **Minimal Dependencies:** FastAPI, Uvicorn, pytest, and `mcp` SDK are approved. New deps require a stage-mission note.
 
 ## Workflow
 

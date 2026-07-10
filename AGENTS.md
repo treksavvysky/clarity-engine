@@ -8,36 +8,41 @@ The goal is to keep changes **small, testable, and reversible**, while maintaini
 
 ## 1. Mission
 
-Clarity Engine provides tools to compose, lint, and emit **Context Packets** for human–AI workflows.
+The **Clarity Engine** exists to **reduce the cognitive load between raw human intent and aligned strategic action.**
+
+It does not exist to create packets; mission packets are one possible downstream artifact of clarity, not the definition of clarity itself.
 
 Codex’s mission in this repo:
 
-> Implement and maintain small, incremental changes that improve the ability to generate clear, consistent, and testable Context Packets—without breaking existing behavior or contracts.
+> Implement and maintain small, incremental changes that improve human-first intent capture, route diagnosis, and ephemeral "Smallest Next Move" generation—without breaking existing behavior or contracts.
 
-See `docs/vision/mission.md` for the extended mission statement.
-See `docs/vision/architecture.md` for the shipped architecture and historical roadmap.
+See [mission.md](file:///home/architect/cognition/clarity-engine/docs/vision/mission.md) for the extended mission statement.
+See [CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md) for the active 2.0 architecture direction.
+
 ---
 
 ## 2. Scope and Boundaries
 
 ### Current State
-All documented stages (01-06) are shipped. The repo now includes the packet CLI tools, FastAPI service, content-addressed registry, packet diff/lineage, JCT-ready enqueue envelope, MCP server, and static browser UI. `docs/vision/current_reality.md` is the facts-only source of truth.
+Operating as **Clarity Engine Lite**. The repository includes packet CLI tools, a FastAPI service, a content-addressed filesystem registry, packet diff/lineage, MCP server, and a human-friendly static browser UI. `docs/vision/current_reality.md` is the facts-only source of truth.
 
-### Evolution Policy
-- **Additive changes allowed:** Tools (`lint_packet.py`, `compose_packet.py`) may be extended with new functionality.
-- **No breaking changes:** Existing validation semantics and deterministic outputs must be preserved.
-- **Schema evolution:** `pcp_lite.schema.json` may add new optional fields; required fields need migration plan.
-- **Template sync:** `CONTEXT_PACKET_TEMPLATE.md` must stay aligned with schema changes.
-- **Shared behavior:** HTTP endpoints, MCP tools, and CLI commands should continue to delegate to the same core modules so behavior does not drift.
+### Evolution Policy (Clarity Engine Lite & 2.0 Core Rules)
+1. **Conversational 5-Question Intake:** UI capturing is structured around:
+   - *What is on your mind?* (raw intent)
+   - *What makes this hard?* (extracts constraints/boundaries)
+   - *What context matters?* (captures immediate facts)
+   - *Where should this route?* (predefined dropdown paths)
+   - *What do you want back?* (diagnosis/mission/packet/review)
+2. **Human-Readable Before Machine-Readable:** The default UI view is a plain-language card (Diagnosis, Mission, Next Action). The machine-readable JSON manifest is a background metadata artifact.
+3. **One-Intent / One-Mission Rule:** A single raw intent maps to exactly one primary strategic objective and one next action. Merger of multiple intents is allowed only if they share: same object, same failure condition, same desired state, same execution path, and same review criteria.
+4. **The Ephemeral "Smallest Next Move":** Formally defined as *the minimum action needed to move a clarified mission into the correct downstream loop without pretending the mission is complete*. It must not contain checklists, and the engine retains zero memory of its execution state.
+5. **No Silent Context Generation:** Gaps in intent must be marked as missing (`missing_info`), not silently invented.
 
-### Current Allowances
-- Add new lint warnings, optional schema fields, render sections, HTTP endpoints, MCP tools, or UI affordances when explicitly scoped.
-- Improve registry, diff, enqueue, and permission-check behavior without changing deterministic hashes for unchanged manifests.
-- Replace the static UI with a richer frontend only under a new explicit stage plan; the current shipped UI is `ui/index.html`.
-
-### Still out of scope
-- Authentication, secrets handling, databases, outbound network behavior, or destructive workflows unless explicitly scoped in a new packet or stage plan.
-- Runtime dependencies that require network access in CI or make offline tests impossible.
+### Still Out of Scope
+* **Operational Loops & Task Tracking:** We explicitly avoid task tracking, backlog scheduling, and loop management (decoupled from this repo; handled externally by JCT/DevOps).
+* **Continuous Improvement Systems:** PDCA, QRCI, and Hoshin Kanri loops are out-of-scope and belong in separate systems (e.g. [DEVOPS-CONTINUOUS-IMPROVEMENT-LOOP.md](file:///home/architect/cognition/clarity-engine/docs/vision/DEVOPS-CONTINUOUS-IMPROVEMENT-LOOP.md)).
+* **Database & Auth:** Persistence remains local filesystem-only under `packets/registry/<sha>/`.
+* **Outbound network callbacks / secrets handling.**
 
 ---
 
