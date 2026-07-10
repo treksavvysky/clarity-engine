@@ -117,3 +117,15 @@ The development of Clarity Engine 2.0 is guided by these five critical design le
 3. **Human-Readable Before Machine-Readable:** The default interface must speak in plain, scannable language. Structuring machine-readable schemas (like JSON manifests) is a secondary compilation output that resides in the background.
 4. **No Silent Context Hallucination:** Missing constraints or context must be explicitly marked as missing (using flags like `missing_info` and linter warnings), forcing the human to clarify rather than letting the system silently invent facts.
 5. **Separation of Strategy and Tasking:** Clarity Engine produces strategic mission clarity. Downstream task trackers (like JCT) and execution agents manage individual checklists, schedules, and task queues.
+
+---
+
+## 6. Discarded & Redesigned Legacy Paradigms
+To prevent design regression, Clarity Engine 2.0 explicitly discards or radically refactors these legacy architectural concepts:
+
+* **Packet-First Output (Discarded):** Replaced by a human-first strategic card layout (Diagnosis, Mission, Smallest Next Action). The structured packet is a background artifact.
+* **Markdown-Dense Presentation (Redesigned):** Replaced with clean, scannable visual typography. The verbose text blocks are hidden by default.
+* **Multi-Packet Generation (Discarded):** Gated under a strict 1-to-1 ratio (One Intent -> One Mission) to reduce decision fatigue.
+* **Premature Registry Workflow (Discarded/Deferred):** Automatic or low-gate file writes are deactivated. Registry saving is strictly manual, review-gated, and deferred.
+* **Overloaded Task/Project Hierarchy (Discarded):** Removed task tracking and nested project arrays. Clarity Engine tracks strategic meaning, not execution status.
+* **Ambiguous Route Semantics (Redesigned):** Replaced manual text routes with strict route selection (via UI dropdown) that governs grounding rules, output layouts, and downstream handoff properties.
