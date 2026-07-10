@@ -97,3 +97,14 @@ To decouple the UI from the intelligence processing layer, Clarity Engine 2.0 de
 ## 4. UI/UX Evolution Path
 * **Standard Strategic Interface:** An ultra-clean, card-based interface focused on single-box capture, diagnosis banners, and single next-action highlights.
 * **Advanced/Power User Mode:** Remains toggleable to reveal JSON schema editors, diff tools, version lineage graphs, and direct registry reads/writes.
+
+---
+
+## 5. Core Lessons Learned (Clarity Engine Lite)
+The development of Clarity Engine 2.0 is guided by these five critical design lessons:
+
+1. **One Intent, One Clarification:** One raw intent produces exactly one primary strategic objective and one next action, preventing premature decomposition and task bloat unless the user explicitly requests it.
+2. **Human Comprehension is the Metric of Success:** A packet is only successful if the human operator can understand the strategic mission in 5 seconds or less. Technical complexity must not block comprehension.
+3. **Human-Readable Before Machine-Readable:** The default interface must speak in plain, scannable language. Structuring machine-readable schemas (like JSON manifests) is a secondary compilation output that resides in the background.
+4. **No Silent Context Hallucination:** Missing constraints or context must be explicitly marked as missing (using flags like `missing_info` and linter warnings), forcing the human to clarify rather than letting the system silently invent facts.
+5. **Separation of Strategy and Tasking:** Clarity Engine produces strategic mission clarity. Downstream task trackers (like JCT) and execution agents manage individual checklists, schedules, and task queues.
