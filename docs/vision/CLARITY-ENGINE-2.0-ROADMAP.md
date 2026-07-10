@@ -40,15 +40,15 @@ Refactors the API responses to return the 4-step output hierarchy and locks down
 ## Phase 3: Conversational User Interface
 Redesigns the static web viewport to serve a conversational intake layout and scannable cards.
 
-* [ ] **Task 3.1: Build the Conversational Input UI**
+* [x] **Task 3.1: Build the Conversational Input UI**
   * Redesign `ui/index.html` to present the 5 conversational capture questions, with Question 4 rendered as a strict dropdown list.
-  * *Evidence:*
-* [ ] **Task 3.2: Render the 4-Step Output Hierarchy Card**
+  * *Evidence:* Commit 4086bf4: Redesigned Raw Intent Capture to present the 5 conversational wizard questions.
+* [x] **Task 3.2: Render the 4-Step Output Hierarchy Card**
   * Refactor the frontend display panels to map draft responses to the scannable 4-step output card layout, hiding the JSON block behind the Advanced Mode toggle.
-  * *Evidence:*
-* [ ] **Task 3.3: Write Frontend Integration Tests**
+  * *Evidence:* Commit 4086bf4: Created 4-step diagnosis/mission/smallest next action display card, hiding JSON payload.
+* [x] **Task 3.3: Write Frontend Integration Tests**
   * Add UI integration tests to assert that root serving mounts the new conversational UI and processes inputs correctly.
-  * *Evidence:*
+  * *Evidence:* Commit 4086bf4: Added assertions to tests/test_app_ui.py to verify elements of the 5 questions and 4-step layout.
 
 ---
 
