@@ -22,18 +22,18 @@ Focuses on updating the backend schemas, endpoints, and helpers to support the 5
 ## Phase 2: Plain-Language Output & Intercept Routing
 Refactors the API responses to return the 4-step output hierarchy and locks down route-governed behaviors.
 
-* [ ] **Task 2.1: Refactor Draft Output Payloads**
+* [x] **Task 2.1: Refactor Draft Output Payloads**
   * Modify the `/intents/draft` endpoint response to return exactly the 4-step output hierarchy (diagnosis, mission, smallest_next_action, and optional packet_draft).
-  * *Evidence:*
-* [ ] **Task 2.2: Implement Dropdown Route Logic**
+  * *Evidence:* Commit 3c45a73: Modified /intents/draft to return diagnosis, mission, smallest_next_action, and packet_draft.
+* [x] **Task 2.2: Implement Dropdown Route Logic**
   * Refactor route processing to accept the dropdown route selections and determine grounding rules and downstream handoff types.
-  * *Evidence:*
-* [ ] **Task 2.3: Lock Down the Ephemeral Next Action**
+  * *Evidence:* Commit 3c45a73: Allowed single string route inputs, mapped routes to Strategic/DevOps handoffs, and returned diagnosis warnings.
+* [x] **Task 2.3: Lock Down the Ephemeral Next Action**
   * Implement the strict next-action formatter that extracts a singular momentum seed from the friction question without checklists or task queues.
-  * *Evidence:*
-* [ ] **Task 2.4: Validate Phase 2 Endpoints**
+  * *Evidence:* Commit 3c45a73: Implemented use_friction toggle to build next action seeds specifically from Question 2 constraints.
+* [x] **Task 2.4: Validate Phase 2 Endpoints**
   * Write unit tests for route boundaries, next-action formulation, and plain-language diagnosis blocks.
-  * *Evidence:*
+  * *Evidence:* Commit 3c45a73: Added assertions to test conversational extraction and 2.0 output schema validation.
 
 ---
 
