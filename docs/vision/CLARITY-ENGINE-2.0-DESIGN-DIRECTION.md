@@ -35,9 +35,14 @@ We recognize that structured Context Packets are merely one possible artifact of
 +--------------------------------------+  +---------------------+
 ```
 
-### Pillar 1: Zero-Friction Capturing (Single-Box Intake)
-* **Lite Baseline:** The human manually inputs separate arrays for Intent, Context Bullets, and Constraint Bullets.
-* **2.0 Direction:** The capture interface is reduced to a single input field. The human dumps a messy paragraph. Under the hood, the backend parses, extracts, and populates the schema fields (contexts, constraints, routes) dynamically.
+### Pillar 1: Conversational Zero-Friction Capture (The 5-Question Workflow)
+* **Lite Baseline:** The human manually inputs separate textareas labeled Intent, Context Bullets, and Constraint Bullets.
+* **2.0 Direction:** The capture interface is replaced with a brutally simple, conversational 5-step form (or single-page equivalent) based on these questions:
+  1. **What is on your mind?** (Maps to `raw_intent` messy thought dump)
+  2. **What makes this hard?** (Maps to `human_constraints` - extracts friction/boundaries naturally)
+  3. **What context matters?** (Maps to `additional_context` - captures immediate connections)
+  4. **Where should this route?** (Selected via a simple dropdown in the UI containing predefined paths like SMI, Mnemos, DevOps, or Strategic Plan, mapping to `route`)
+  5. **What do you want back?** (Maps to `desired_output_mode` - options: diagnosis, mission, packet, or review)
 
 ### Pillar 2: DevOps Separation & Route Diagnosis
 * **Lite Baseline:** Checks for DevOps keywords and logs warning alerts on the UI.
@@ -63,12 +68,12 @@ To decouple the UI from the intelligence processing layer, Clarity Engine 2.0 de
 ### Input Payload
 ```json
 {
-  "raw_intent": "string (messy human input)",
-  "human_constraints": "string (optional manual constraints)",
-  "additional_context": ["string (optional context bullets)"],
-  "route": ["string (suggested path)"],
+  "raw_intent": "string (Question 1: What is on your mind?)",
+  "human_constraints": "string (Question 2: What makes this hard?)",
+  "additional_context": ["string (Question 3: What context matters?)"],
+  "route": ["string (Question 4: Where should this route? Dropdown selection)"],
   "known_project_context": "string (extracted from SMI/PCP)",
-  "desired_output_mode": "diagnosis | mission | packet | review"
+  "desired_output_mode": "diagnosis | mission | packet | review (Question 5: What do you want back?)"
 }
 ```
 
