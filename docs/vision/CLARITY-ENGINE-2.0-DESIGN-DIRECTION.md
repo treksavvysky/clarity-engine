@@ -48,7 +48,7 @@ We recognize that structured Context Packets are merely one possible artifact of
 * **2.0 Direction:** The primary output is reduced to the absolute minimum needed for momentum:
   1. **One Clarified Strategic Objective.**
   2. **One Smallest Next Action.**
-  The complex PCP-lite manifest JSON acts as a background contract for downstream agents, completely hidden from the standard human view.
+* **Deferred Packet Formalization:** The formalization of the mission packet (JSON serialization, schema verification, and filesystem registry writes) is **deferred** until we are ready to build the downstream intelligence layer (the agents that actually consume these packets). Until then, the system operates as a pure cognitive unblocker, avoiding the administrative overhead of premature structured files.
 
 ---
 
