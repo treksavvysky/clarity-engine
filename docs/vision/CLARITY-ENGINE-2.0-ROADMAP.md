@@ -55,12 +55,12 @@ Redesigns the static web viewport to serve a conversational intake layout and sc
 ## Phase 4: Integration & Cleanup
 Aligns CLI tools and the MCP server with the new 2.0 compilation engine, and deactivates obsolete modules.
 
-* [ ] **Task 4.1: Update MCP Server Tools**
+* [x] **Task 4.1: Update MCP Server Tools**
   * Align the stdio MCP tools (`compose`, `lint`, `register`) with the updated 2.0 schema translation boundaries.
-  * *Evidence:*
-* [ ] **Task 4.2: Deactivate Obsolete Task/JCT Assets**
+  * *Evidence:* Commit eb7fd46: Implemented draft_intent_tool on the stdio MCP server mirroring /intents/draft.
+* [x] **Task 4.2: Deactivate Obsolete Task/JCT Assets**
   * Remove or isolate JCT queuing logic and JCT endpoints to maintain loop separation boundaries.
-  * *Evidence:*
-* [ ] **Task 4.3: Final Regression Testing**
+  * *Evidence:* Commit eb7fd46: Formally deprecated the /packets/enqueue endpoint in FastAPI and OpenAPI metadata.
+* [x] **Task 4.3: Final Regression Testing**
   * Run the full unit and integration test suite to ensure 100% green coverage across all endpoints and CLI scripts.
-  * *Evidence:*
+  * *Evidence:* Commit eb7fd46: Verified full regression test suite (59 passed, 0 failures).
