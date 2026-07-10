@@ -140,3 +140,16 @@ To prevent design regression into task tracking, the **Smallest Next Move** is f
 3. **Friction-Centric Extraction:** The move is extracted by diagnosing *"What makes this hard?"* (Question 2 of the capture workflow) and identifying the absolute smallest entry point to unblock that specific friction.
 
 By enforcing these boundaries, the engine remains focused on **cognitive resolution** (reducing cognitive load to zero) while leaving all project management state to external trackers.
+
+---
+
+## 8. Multi-Intent Consolidation (The Merger Rule)
+While the default mapping is strictly 1-to-1 (One Intent -> One Mission), either the human or the Intelligence Layer may identify related raw intents over time that should be consolidated. Multiple raw intents may be formulated into a single strategic mission if and only if they share:
+
+1. **Same Object:** They concern the exact same system, situation, or ecosystem boundary.
+2. **Same Failure Condition:** They trace back to the same root problem or vulnerability.
+3. **Same Desired State:** Resolving the intents leads to a single, coherent strategic outcome.
+4. **Same Execution Path:** The unblocking effort can be addressed in a single, bounded sweep.
+5. **Same Review Criteria:** Success for all intents can be evaluated collectively under one standard.
+
+When merged, the original raw intents must be preserved individually in the background compilation metadata (e.g. within `current_reality` history) to maintain complete auditability, while rendering a single plain-language mission card for the operator.
