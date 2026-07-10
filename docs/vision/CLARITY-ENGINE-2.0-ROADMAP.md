@@ -7,15 +7,15 @@ This roadmap tracks the step-by-step transition from Clarity Engine Lite to Clar
 ## Phase 1: Intake & Core Translation Backend
 Focuses on updating the backend schemas, endpoints, and helpers to support the 5-question conversational workflow.
 
-* [ ] **Task 1.1: Implement 2.0 Intake Schema Contracts**
+* [x] **Task 1.1: Implement 2.0 Intake Schema Contracts**
   * Update API payload validation to accept the 5 conversational input fields mapping to standard keys.
-  * *Evidence:*
-* [ ] **Task 1.2: Refactor Constraint & Context Extraction**
+  * *Evidence:* Commit ff2dc15: Refactored draft builder to support conversational intake keys with backward-compatible defaults.
+* [x] **Task 1.2: Refactor Constraint & Context Extraction**
   * Update the compilation compiler to translate Question 2 ("What makes this hard?") into schema constraints, and Question 3 ("What context matters?") into background current reality facts.
-  * *Evidence:*
-* [ ] **Task 1.3: Update Backend Test Coverage**
+  * *Evidence:* Commit ff2dc15: Created _optional_string_or_list helper to parse multiline text inputs into schema elements.
+* [x] **Task 1.3: Update Backend Test Coverage**
   * Add unit tests to verify the conversational schema validation, extraction logic, and input-to-manifest mapping.
-  * *Evidence:*
+  * *Evidence:* Commit ff2dc15: Added unit tests verifying 2.0 conversational keys, newline-splitting, and error-handling validation.
 
 ---
 
