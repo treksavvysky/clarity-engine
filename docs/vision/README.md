@@ -2,15 +2,17 @@
 
 Long-range intent and staged plans live here. Key references:
 
-- `mission.md` — extended mission statement and principles for Clarity Engine.
-- `architecture.md` — planned architecture; intentionally dormant while Stage 0 is frozen.
-- `STAGE-01-MISSION.md` — constraints and objectives for exposing existing packet logic via FastAPI.
-- `STAGE-01-SUMMARY.md` — summary checkpoint to consult before working on Stage-01 substages.
-- `STAGE-01-CONSTRAINTS.md` — Universal constraints for all Stage-01 substages.
-- `STAGE-02-MISSION.md` — Enhanced Linting & Schema Expansion (shipped; backfilled retrospectively).
-- `STAGE-03-MISSION.md` — Registry & Packet Operations (shipped).
-- `STAGE-04-MISSION.md` — JCT Integration (shipped).
-- `STAGE-05-MISSION.md` — MCP Server (shipped).
-- `STAGE-06-MISSION.md` — UI (shipped).
+- [CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md) — strategic architecture and design goals for Clarity Engine 2.0.
+- [mission.md](file:///home/architect/cognition/clarity-engine/docs/vision/mission.md) — extended mission statement and principles for Clarity Engine.
+- [current_reality.md](file:///home/architect/cognition/clarity-engine/docs/vision/current_reality.md) — facts-only inventory of the active system.
+- [architecture.md](file:///home/architect/cognition/clarity-engine/docs/vision/architecture.md) — planned historical architecture (intentionally dormant).
+- [STAGE-01-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-01-MISSION.md) — FastAPI server objectives.
+- [STAGE-01-SUMMARY.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-01-SUMMARY.md) — stage 01 checkpoint.
+- [STAGE-01-CONSTRAINTS.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-01-CONSTRAINTS.md) — Stage 01 constraints.
+- [STAGE-02-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-02-MISSION.md) — linter/schema expansion.
+- [STAGE-03-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-03-MISSION.md) — packet registry/versioning.
+- [STAGE-04-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-04-MISSION.md) — JCT integration.
+- [STAGE-05-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-05-MISSION.md) — MCP server.
+- [STAGE-06-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/STAGE-06-MISSION.md) — UI development.
 
 Keep these documents synchronized with the active stage and update them as stages are frozen or advanced.
