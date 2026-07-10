@@ -129,3 +129,14 @@ To prevent design regression, Clarity Engine 2.0 explicitly discards or radicall
 * **Premature Registry Workflow (Discarded/Deferred):** Automatic or low-gate file writes are deactivated. Registry saving is strictly manual, review-gated, and deferred.
 * **Overloaded Task/Project Hierarchy (Discarded):** Removed task tracking and nested project arrays. Clarity Engine tracks strategic meaning, not execution status.
 * **Ambiguous Route Semantics (Redesigned):** Replaced manual text routes with strict route selection (via UI dropdown) that governs grounding rules, output layouts, and downstream handoff properties.
+
+---
+
+## 7. Defining the "Smallest Next Move" (Anti-Task-Manager Bounds)
+To prevent design regression into task tracking, the **Smallest Next Move** is formally defined as the *lowest-friction, immediate physical or cognitive step required to break inertia*. It is explicitly bounded by three architectural constraints:
+
+1. **Ephemerality (No State Tracking):** Clarity Engine maintains **zero execution memory**. It does not track whether a move is "done," "in progress," or "blocked." It presents the trigger seed once and exits.
+2. **Singular Momentum (No Checklists):** The output produces exactly **one** immediate first action. Generating task lists, backlogs, or checklists is strictly prohibited.
+3. **Friction-Centric Extraction:** The move is extracted by diagnosing *"What makes this hard?"* (Question 2 of the capture workflow) and identifying the absolute smallest entry point to unblock that specific friction.
+
+By enforcing these boundaries, the engine remains focused on **cognitive resolution** (reducing cognitive load to zero) while leaving all project management state to external trackers.
