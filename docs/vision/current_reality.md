@@ -1,168 +1,56 @@
-# Current Reality (Facts Only) — Stage-07.2 Complete
+# Current Reality (Facts Only) — Clarity Engine Lite
 
-## Repository / Contract Baseline
-- Core artifacts have evolved through Stage-06:
-  - `CONTEXT_PACKET_TEMPLATE.md` — Updated with risk_flags, allowed_actions, evidence_requirements sections
-  - `pcp_lite.schema.json` — Extended with optional fields for risk flags, allowed actions, evidence requirements, packet lineage, and callback transport
-  - `tools/compose_packet.py` — Renders all schema fields including the shipped optional fields
-  - `tools/lint_packet.py` — Includes ambiguity detection (vague language, untestable acceptance)
+## 1. Clarity Engine Lite Doctrine & Baseline
+The Clarity Engine has been refactored into **Clarity Engine Lite**, aligning with its core doctrine as an intent-to-mission compiler. It does not store memory, execute work, or manage tasks directly.
 
-## API Implementation State
-- A FastAPI application at `app/main.py` (v0.2.0) exposes:
-  - `GET /healthz` returning `{ "status": "ok" }`.
-  - `GET /openapi.json` with optional `?server=<url>` for GPT Action imports.
-  - `POST /intents/draft` returning a deterministic PCP-lite manifest draft from `{ raw_intent, context, constraints, route }` without registry writes.
-  - `POST /packets/compose` returning `{ packet_md, manifest, context_sha }`.
-  - `POST /packets/lint` returning `{ ok, errors, warnings }` — warnings don't fail validation.
-  - `POST /packets/register`, `GET /packets`, `GET /packets/{sha}`, and `GET /packets/{sha}/ancestors` for registry and lineage operations.
-  - `POST /packets/diff` for manifest or registered-packet comparison.
-  - `POST /packets/enqueue` for deterministic JCT-ready task envelopes.
-  - `GET /` and `/ui/*` for the static browser UI.
-- OpenAPI docs available at `/docs` (Swagger UI).
-- Tests cover endpoints, CLI tools, ambiguity detection, optional schema fields, registry operations, diffing, lineage, enqueue, MCP parity, UI serving, raw-intent drafting, and raw-intent UI controls.
+The system is defined by these eight core capabilities:
+1. **Capture raw intent** — messiest human impulse/impulse seeds.
+2. **Capture human constraints** — boundaries for time, scope, or action.
+3. **Capture additional context** — background facts and connections.
+4. **Select route** — strategic pathing (e.g. SMI, Clarity Engine, Strategic Plan).
+5. **Produce readable diagnosis** — flags DevOps/CI continuous improvement tasks and recommends routing them to external issue trackers.
+6. **Produce one clarified mission** — clean strategic objective framing the intent without vague language.
+7. **Produce one smallest next action** — concrete, safe first step to begin design definition.
+8. **Optionally reveal structured packet** — toggleable advanced view for the compiled PCP-lite JSON manifest.
 
-## Dependency / Runtime Reality
-- A `requirements.txt` exists for the HTTP service dependencies and includes FastAPI, Uvicorn, and Pytest.
-- Installing dependencies from `requirements.txt` succeeds in the development environment.
+---
 
-## Verified Execution (Observed)
-- The service starts successfully via `uvicorn app.main:app --reload`.
-- A request to `/healthz` returns `{ "status": "ok" }` (HTTP 200).
-- `POST /packets/compose` returns deterministic `packet_md`, normalized `manifest`, and `context_sha` for the example manifest.
-- `POST /packets/lint` returns `{ "ok": true, "errors": [], "warnings": [] }` for the example manifest and reports missing required fields when omitted.
-- `pytest -q` runs the endpoint, CLI, MCP, registry, diff, lineage, enqueue, and UI tests in-process.
+## 2. API Endpoints (`app/main.py`)
+- `GET /healthz` — returns health status.
+- `POST /intents/draft` — intake boundary that processes raw intent, runs DevOps diagnosis, cleans vague terms, and drafts the manifest without registry writes.
+- `POST /packets/register` — registers a compiled manifest in the filesystem registry only after review.
+- `POST /packets/diff` — computes changes between two manifests or registered SHAs.
+- `POST /packets/compose` — compositions endpoint (renders markdown).
+- `POST /packets/lint` — validates manifests against schema.
+- `/packets/enqueue` — (DEFERRED/HIDDEN) JCT-compatible task queue envelope generation.
 
-## CI / Tests
-- CI runs Python 3.12 and the packet checks.
-- CI includes an import smoke check to ensure `app.main` loads without side effects.
-- CI runs `pytest -q`, lints the example manifest, and composes the example manifest.
+---
 
-## Service Properties
-- Persistence is filesystem-only under `packets/registry/<sha>/`, with no database.
-- Compose and lint endpoints are side-effect-free; register and enqueue write to the registry.
-- No authentication, secrets handling, or outbound network calls are present.
-- The browser UI is a static `ui/index.html` file mounted by FastAPI.
+## 3. UI Implementation (`ui/index.html`)
+- **Beginner mode (Default):**
+  - Land directly on the **Intent Capture** tab.
+  - Text inputs for Messy Intent, Context Bullets, and Constraint Bullets.
+  - Returns a beautifully formatted HTML preview card showing Strategic Objective, Constraints, Acceptance Criteria, and the highlighted Smallest Next Action.
+  - Prominent alert banners for DevOps routing diagnosis and linter warnings.
+  - Gated registry workflow: *"Approve & Save to Registry"* button is enabled only after a successful draft is compiled.
+- **Advanced mode (Toggleable):**
+  - Clicking *"Enable Advanced Mode"* reveals the "Registered Missions", "Diff", and "Editor" tabs, route selection inputs, and raw JSON previews.
+  - Hides JCT enqueue controls.
 
-## Stage-01.5 Documentation State
-- `CLAUDE.md` added at repository root with project guidance for Claude Code (commands, architecture, constraints).
-- `docs/DESCRIPTION.md` added explaining the "intent → execution packet" vision and architectural positioning.
-- `docs/vision/architecture.md` updated with Future Stages Roadmap (Stages 02–06).
-- README.md already reflects Stage-01.3 usage and endpoints.
+---
 
-## Stage-01 Completion
-All Stage-01 substages (01.1–01.5) are complete.
+## 4. Dependencies & Runtime
+- Base requirements: FastAPI, Uvicorn, pytest, mcp.
+- Local filesystem registry at `packets/registry/` (gitignored).
+- Standard unit tests cover CLI compose/lint, registry diffing, lineage, intents draft, DevOps diagnosis, and UI mounts. All 55 tests pass in-process.
 
-## Stage-02.5 OpenAPI / Custom GPT Actions
-- OpenAPI documentation enabled at `/docs` (Swagger UI) and `/openapi.json`.
-- App description optimized for GPT action discovery: "Intent-to-packet compiler for AI agents."
-- Endpoints tagged (`packets`, `health`) with rich summaries and descriptions.
-- Version bumped to 0.2.0.
-- Custom `/openapi.json` endpoint accepts `?server=<url>` query param to inject the `servers` field for GPT Action imports (e.g., `/openapi.json?server=https://your-host.com`).
+---
 
-## Stage-02.1 Ambiguity Detection
-- Linter extended with vague language detection (flags: "maybe", "should", "try to", "if possible", etc.).
-- Linter detects untestable acceptance criteria (entries lacking action verbs like "returns", "creates", "passes").
-- Warnings are prefixed with `[warning]` and do not cause lint failure.
-- API response structure updated: `{ ok, errors, warnings }` — `ok` is true if no errors (warnings allowed).
-- CLI prints warnings but exits 0 if no errors.
-
-## Stage-02.2 Risk Flags Field
-- Schema extended with optional `risk_flags` array.
-- Valid values: `high_blast_radius`, `needs_human_signoff`, `missing_info`, `network_required`, `destructive_action`, `secrets_involved`, `external_dependency`.
-- Template and compose tool updated to render Risk Flags section.
-
-## Stage-02.3 Allowed Actions Field
-- Schema extended with optional `allowed_actions` array.
-- Valid values: `git_read`, `git_write`, `filesystem_read`, `filesystem_write`, `http_read`, `http_write`, `docker`, `shell_exec`, `secrets_read`, `database_read`, `database_write`.
-- Enables downstream agents to validate permissions before acting.
-
-## Stage-02.4 Evidence Requirements Field
-- Schema extended with optional `evidence_requirements` array.
-- Valid values: `pr_link`, `commit_sha`, `test_output`, `diff`, `logs`, `screenshot`, `artifact_path`, `api_response`.
-- Defines proof-of-work agents must return to verify completion.
-
-## Stage-02 Completion
-All Stage-02 substages (02.1–02.5) are complete.
-
-## Stage-03.1 Packet Registry
-- `app/registry.py` provides a filesystem-backed content-addressed store under `packets/registry/<sha>/` (overridable via `CLARITY_REGISTRY_ROOT`).
-- `POST /packets/register` composes and persists; idempotent (second call returns `registered: false`).
-- `GET /packets` lists `{context_sha, mission}` entries; `GET /packets/{sha}` returns stored manifest + markdown or 404.
-- Compose/lint endpoints remain side-effect-free.
-
-## Stage-03.2 Packet Diffing
-- `POST /packets/diff` accepts `left` and `right`, each either a `context_sha` string or an inline manifest object.
-- Returns `{added, removed, changed}` — only fields that differ; unchanged fields are omitted.
-- Unknown sha returns 404; missing sides return 400.
-
-## Stage-03.3 Packet Versioning
-- Optional `parent_sha` field added to schema (pattern `^[a-f0-9]{64}$`).
-- Linter honors string `pattern` constraints.
-- Compose renders a `Parent SHA:` line in the markdown header when present.
-- `GET /packets/{sha}/ancestors` walks the lineage chain and returns ancestors ordered nearest → oldest.
-
-## Stage-03 Completion
-All Stage-03 substages (03.1–03.3) are complete.
-
-## Stage-04.1 Enqueue Shape
-- `POST /packets/enqueue` composes + registers + returns a JCT-ready envelope.
-- `task_id === context_sha` (no separate id space).
-- Idempotent: second call returns `registered: false`; envelope is deterministic.
-
-## Stage-04.2 Callback URL Field
-- Optional `callback_url` added to schema (`^https?://[^\s]+$`).
-- Linter rejects non-URL values.
-- Clarity Engine never calls the URL; it is transport-only data for downstream orchestrators.
-
-## Stage-04 Completion
-All Stage-04 substages (04.1–04.2) are complete.
-
-## Stage-05.1 MCP Tool Exposure
-- `app/mcp_server.py` exposes eight MCP tools over stdio: `compose_packet_tool`, `lint_packet_tool`, `register_packet_tool`, `get_packet_tool`, `list_packets_tool`, `diff_packets_tool`, `enqueue_packet_tool`, `check_action_tool`.
-- All tool handlers delegate to existing modules (`tools/compose_packet.py`, `tools/lint_packet.py`, `app/registry.py`) — no logic duplication.
-- Tool outputs match HTTP endpoint outputs for the golden manifest (parity verified in tests).
-- Entry point: `python -m app.mcp_server`.
-
-## Stage-05.2 Agent Permissions Enforcement
-- `check_action_tool` resolves a registered packet and returns `{allowed, reason}` for a proposed action.
-- Reasons: `permitted`, `not_in_allowed_actions`, `unknown_packet`.
-
-## Stage-05 Dependencies
-- `mcp==1.27.0` added to `requirements.txt`.
-- FastAPI upgraded to 0.136.0, Uvicorn to 0.45.0 for starlette 1.0 compatibility.
-
-## Stage-05 Completion
-All Stage-05 substages (05.1–05.2) are complete.
-
-## Stage-06.1 Packet Browser UI
-- `GET /` serves `ui/index.html`; `/ui/*` mounted as static assets.
-- Browser tab lists packets from `GET /packets` and shows manifest + markdown detail.
-- No Node/npm toolchain; single static HTML file.
-
-## Stage-06.2 Diff Viewer UI
-- Diff tab accepts two sides, each either a 64-char sha or an inline JSON manifest.
-- Calls `POST /packets/diff`; renders added/removed/changed in color-coded sections.
-
-## Stage-06.3 Manifest Editor UI
-- Editor tab has a JSON textarea with Lint / Compose / Register / Enqueue buttons.
-- Includes a "Load example" helper; refreshes the Browser list after Register/Enqueue.
-
-## Stage-06 Completion
-All Stage-06 substages (06.1–06.3) are complete. Test count: 50. A Next.js/React frontend remains the architectural aspiration; `ui/index.html` is the concrete Stage-06 deliverable and can be replaced without backend changes.
-
-## Stage-07.1 Raw Intent Drafting
-- `POST /intents/draft` accepts a JSON object with required `raw_intent` and optional `context`, `constraints`, and `route` string arrays.
-- The endpoint deterministically returns `{ ok, errors, warnings, manifest, packet_md, context_sha, registered }`.
-- `registered` is always `false`; the endpoint is side-effect-free and does not write to `packets/registry/`.
-- The draft manifest is linted before return, and callers can send the returned manifest to `/packets/register` after review.
-
-## Stage-07.2 Raw Intent UI
-- The static browser UI includes an Intent tab.
-- The Intent tab accepts raw intent, context bullets, constraint bullets, and a route list.
-- It calls `POST /intents/draft`, renders lint status plus readable packet sections, and can register the reviewed draft through `POST /packets/register`.
-
-## Project State
-All documented stages through Stage-07.2 are shipped. The service exposes HTTP, MCP, browser access, raw-intent drafting, and a raw-intent UI for deterministic packet operations. Further work is additive (new fields, new tools) or a platform swap (Next.js UI, database registry) that would warrant a new stage plan.
-
-## Raw Intent Intake Boundary
-Clarity Engine accepts structured Project Context Protocol lite (PCP-lite) manifests for packet operations. `POST /intents/draft` is the explicit raw-intent intake boundary: it converts `{ raw_intent, context, constraints, route }` into a draft mission packet for review, lint, compose, register, or enqueue.
+## 5. Explicitly Deferred / Out of Scope
+The following areas are deferred from the engine and handled externally:
+- **Automatic registry writes** (registry is review-gated).
+- **Task queuing & JCT orchestration** (hidden/deferred).
+- **Cross-project rollouts** (out of scope).
+- **Full SMI/PCP/Anamnesis integration** (SMI/Anamnesis are separate systems).
+- **Multi-agent execution** (execution is handled by worker agents like Jules/Codex/Claude).
+- **The Intent Router** (complex automated routing is deferred; manual/diagnosed route select remains).
