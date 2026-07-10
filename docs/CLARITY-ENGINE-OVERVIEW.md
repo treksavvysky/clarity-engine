@@ -8,15 +8,15 @@ The **Clarity Engine** is a small, specialized part of this ecosystem.
 ---
 
 ## 2. Clarity Engine Doctrine
-The Clarity Engine serves strictly as the **cognitive intent compiler** of the ACE/Cortex ecosystem.
+The **Clarity Engine** does not exist to create packets. 
+
+It exists to **reduce the distance between human intent and aligned action.**
 
 * **It does not store memory.** (Memory is handled by `Mnemos` and `SMI`).
 * **It does not execute work.** (Execution is handled by worker agents like Jules/Codex/Claude).
 * **It does not manage tasks directly.** (Orchestration is handled by task/job trackers like JCT).
 
-Its sole job is to **clarify intent**.
-
-It takes raw human input, retrieved memory, present project truth (PCP), doctrine, constraints, and strategic state, and refines them into a structured mission packet suitable for downstream planning and execution.
+It clarifies intent. Mission packets are one possible artifact of clarity, not the definition of clarity itself.
 
 * **SMI** tells the system where meaning lives.
 * **Anamnesis** tells the system what past context still applies.

@@ -1,6 +1,6 @@
 # Clarity Engine Mission (Extended)
 
-Clarity Engine exists to preserve the bridge between human thought and strategic action. It converts messy raw intent into a structured, bounded mission packet to align contributors without cognitive drift.
+Clarity Engine does not exist to create packets. It exists to reduce the distance between human intent and aligned action. Mission packets are one possible artifact of clarity, not the definition of clarity itself.
 
 This tool is a specialized component of our ultimate objective: **to build an autonomous cognitive ecosystem supporting human intent, AI cognition, software execution, memory, and life operations.**
 
