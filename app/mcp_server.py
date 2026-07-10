@@ -161,6 +161,87 @@ def check_action_tool(context_sha: str, action: str) -> dict:
     return {"allowed": False, "reason": "not_in_allowed_actions"}
 
 
+@mcp.tool(
+    description=(
+        "Draft a PCP-lite manifest from one raw intent conversational wizard style. "
+        "Returns {diagnosis, mission, smallest_next_action, packet_draft}."
+    )
+)
+def draft_intent_tool(
+    raw_intent: str,
+    human_constraints: str | None = None,
+    additional_context: str | None = None,
+    route: str | None = None,
+    known_project_context: str | None = None,
+    desired_output_mode: str | None = None,
+) -> dict:
+    body = {
+        "raw_intent": raw_intent,
+    }
+    if human_constraints:
+        body["human_constraints"] = human_constraints
+    if additional_context:
+        body["additional_context"] = additional_context
+    if route:
+        body["route"] = route
+    if known_project_context:
+        body["known_project_context"] = known_project_context
+    if desired_output_mode:
+        body["desired_output_mode"] = desired_output_mode
+
+    # Call FastAPI draft builder helper
+    from app.main import _draft_manifest_from_intent, _diagnose_intent, _optional_string_or_list
+    import json
+
+    manifest = _draft_manifest_from_intent(body)
+    issues = lint_packet.lint_manifest(manifest, _SCHEMA)
+    errors = [i for i in issues if not i.startswith("[warning]")]
+    warnings = [i for i in issues if i.startswith("[warning]")]
+    
+    diagnosis = _diagnose_intent(raw_intent)
+    warnings.extend(diagnosis["warnings"])
+
+    route_list = _optional_string_or_list(body, "route")
+    if not route_list:
+        route_list = diagnosis["suggested_route"]
+    route_text = " -> ".join(route_list)
+
+    diag_parts = []
+    if diagnosis["is_devops"] or any("DevOps" in r for r in route_list):
+        diag_parts.append("DevOps Task Detected: Strategic intent is clear, but continuous improvement tasks should be redirected to external DevOps loops (QRCI).")
+    else:
+        diag_parts.append(f"Strategic Route Grounded: {route_text}. Handed off to strategic deployment loop.")
+
+    if warnings:
+        clean_warns = [w.replace("[warning]", "").strip() for w in warnings]
+        diag_parts.append(f"Lint Warnings: {', '.join(clean_warns)}")
+    
+    diagnosis_text = " | ".join(diag_parts)
+
+    normalized_manifest = compose_packet.normalize_manifest(manifest)
+    
+    smallest_next_action = ""
+    for artifact in manifest["required_artifacts"]:
+        if artifact.startswith("Smallest next action:"):
+            smallest_next_action = artifact.replace("Smallest next action:", "").strip()
+            break
+    if not smallest_next_action:
+        for note in manifest["notes"]:
+            if note.startswith("Smallest next action:"):
+                smallest_next_action = note.replace("Smallest next action:", "").strip()
+                break
+
+    return {
+        "diagnosis": diagnosis_text,
+        "mission": manifest["mission"],
+        "smallest_next_action": smallest_next_action,
+        "packet_draft": json.loads(normalized_manifest),
+        "ok": not errors,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
 def main() -> None:
     mcp.run()
 

@@ -547,6 +547,7 @@ def _diff_manifests(left: dict, right: dict) -> dict[str, Any]:
     "/packets/enqueue",
     tags=["packets"],
     summary="Compose, register, and return a JCT-ready envelope",
+    deprecated=True,
     description=(
         "Composes the manifest, persists it to the registry, and returns an envelope "
         "suitable for hand-off to a JCT-like orchestrator. task_id equals context_sha. "

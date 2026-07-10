@@ -138,4 +138,28 @@ def test_server_lists_expected_tools():
         "diff_packets_tool",
         "enqueue_packet_tool",
         "check_action_tool",
+        "draft_intent_tool",
     }.issubset(names)
+
+
+def test_draft_intent_tool_matches_http(client):
+    body = {
+        "raw_intent": "Establish route strategy notes.",
+        "human_constraints": "Must use JSON.\nNo database writes.",
+        "additional_context": "SMI routing.",
+        "route": "Strategic Plan",
+        "desired_output_mode": "mission"
+    }
+    http_body = client.post("/intents/draft", json=body).json()
+    mcp_body = _call("draft_intent_tool", {
+        "raw_intent": body["raw_intent"],
+        "human_constraints": body["human_constraints"],
+        "additional_context": body["additional_context"],
+        "route": body["route"],
+        "desired_output_mode": body["desired_output_mode"]
+    })
+
+    assert mcp_body["diagnosis"] == http_body["diagnosis"]
+    assert mcp_body["mission"] == http_body["mission"]
+    assert mcp_body["smallest_next_action"] == http_body["smallest_next_action"]
+    assert mcp_body["packet_draft"] == http_body["packet_draft"]
