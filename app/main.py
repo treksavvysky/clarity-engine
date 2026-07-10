@@ -66,6 +66,26 @@ def _optional_string_list(body: dict[str, Any], field: str) -> list[str]:
     return items
 
 
+def _optional_string_or_list(body: dict[str, Any], field: str) -> list[str]:
+    value = body.get(field)
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [line.strip() for line in value.split("\n") if line.strip()]
+    if not isinstance(value, list):
+        raise HTTPException(status_code=400, detail=f"'{field}' must be a string or a list of strings.")
+
+    items: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise HTTPException(
+                status_code=400,
+                detail=f"'{field}' entry at index {index} must be a non-empty string.",
+            )
+        items.append(item.strip())
+    return items
+
+
 def _diagnose_intent(raw_intent: str) -> dict[str, Any]:
     import re
     DEVOPS_KEYWORDS = {
@@ -139,9 +159,33 @@ def _draft_smallest_next_action(raw_intent: str) -> str:
 
 def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
     raw_intent = _require_non_empty_string(body.get("raw_intent"), "raw_intent")
-    context = _optional_string_list(body, "context")
-    constraints = _optional_string_list(body, "constraints")
-    route = _optional_string_list(body, "route")
+    
+    # Context list (2.0 conversational with fallback)
+    context = _optional_string_or_list(body, "additional_context")
+    if not context:
+        context = _optional_string_or_list(body, "context")
+        
+    # Constraints list (2.0 conversational with fallback)
+    constraints = _optional_string_or_list(body, "human_constraints")
+    if not constraints:
+        constraints = _optional_string_or_list(body, "constraints")
+        
+    # Route list
+    route = _optional_string_or_list(body, "route")
+    
+    # Project Context
+    known_project_context = body.get("known_project_context")
+    if known_project_context is not None and not isinstance(known_project_context, str):
+        raise HTTPException(status_code=400, detail="'known_project_context' must be a string.")
+        
+    # Output mode
+    desired_output_mode = body.get("desired_output_mode")
+    if desired_output_mode is not None:
+        if desired_output_mode not in ("diagnosis", "mission", "packet", "review"):
+            raise HTTPException(
+                status_code=400,
+                detail="'desired_output_mode' must be one of: diagnosis, mission, packet, review"
+            )
 
     diagnosis = _diagnose_intent(raw_intent)
     if not route:
@@ -154,7 +198,10 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
     current_reality = [
         f"Raw intent captured: {raw_intent}"
     ]
+    if known_project_context and known_project_context.strip():
+        current_reality.append(f"Known project context: {known_project_context.strip()}")
     current_reality.extend(context)
+    
     if diagnosis["is_devops"]:
         current_reality.append(
             "DIAGNOSIS WARNING: This intent relates to DevOps continuous improvement (issue tracker) rather than strategic design."
