@@ -144,6 +144,19 @@ Always consult `docs/vision/current_reality.md` for the current facts about the 
 
 ---
 
+### 3.5 Docker Dev Container
+
+10. `Dockerfile`, `docker-compose.yml`, `.dockerignore`
+   - Run the FastAPI service in a container for local dev: `python:3.12-slim` base, installs `requirements.txt`, runs `uvicorn app.main:app --reload` on port 8000, published to host port 8010.
+   - `docker-compose.yml` bind-mounts the repo into `/app` so `--reload` picks up host edits, and so `packets/registry/` persists on the host regardless of whether the service runs bare-metal or containerized.
+   - Must be updated if:
+     - `requirements.txt` changes (rebuild picks it up automatically, but bump the base image or add system deps here if a new dependency needs them)
+     - The app's entrypoint, port, or module path changes
+     - A public vhost is added (join `codejourney-proxy` network and add a proxy entry; do this only under an explicit request)
+   - The MCP server (`app/mcp_server.py`) stays host-only (stdio, launched via `.mcp.json`) — do not add it to the container.
+
+---
+
 ## 4. Change Rules for Codex
 
 When Codex makes changes:
