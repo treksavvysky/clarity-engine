@@ -2,6 +2,28 @@
 
 Clarity Engine is intent and context infrastructure: it standardizes how we generate clear, testable Context Packets for human–AI and agentic workflows so work stays aligned and auditable.
 
+## Clarity Engine Doctrine
+
+The **Clarity Engine** is the cognitive intent compiler of the ACE/Cortex ecosystem.
+
+It does not store memory.
+It does not execute work.
+It does not manage tasks directly.
+
+It clarifies intent.
+
+It takes raw human input, retrieved memory, present project truth, doctrine, constraints, and strategic state, then produces a structured mission packet suitable for downstream planning and execution.
+
+**SMI tells the system where meaning lives.**
+**Anamnesis tells the system what past context still applies.**
+**PCP tells the system what is currently true about a project.**
+**Mnemos gives the human a human-facing cognitive workspace.**
+**The Clarity Engine decides what the intent means now.**
+
+Its job is to preserve the bridge between thought and action.
+
+A detailed description is found in [docs/CLARITY-ENGINE-OVERVIEW.md](file:///home/architect/cognition/clarity-engine/docs/CLARITY-ENGINE-OVERVIEW.md).
+
 ## Project State
 All documented stages through Stage-07.2 are shipped:
 

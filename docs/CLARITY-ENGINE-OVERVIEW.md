@@ -1,4 +1,4 @@
-## Definition: Clarity Engine
+# Clarity Engine: Detailed Description
 
 The **Clarity Engine** is the intent-refinement and mission-compilation layer of an cognitive ecosystem. Its purpose is to convert ambiguous human intention into structured, executable mission artifacts without losing context, constraints, doctrine, or strategic meaning.
 
