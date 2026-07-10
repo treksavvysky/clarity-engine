@@ -152,8 +152,11 @@ def _clean_intent_for_manifest(raw_intent: str) -> str:
     return normalized.strip()
 
 
-def _draft_smallest_next_action(raw_intent: str) -> str:
+def _draft_smallest_next_action(raw_intent: str, human_constraints: list[str] = None, use_friction: bool = False) -> str:
     cleaned = _clean_intent_for_manifest(raw_intent)
+    if use_friction and human_constraints and len(human_constraints) > 0:
+        first_friction = human_constraints[0].strip().rstrip(".")
+        return f"Draft a design note for '{cleaned}' specifically addressing how to handle the friction: '{first_friction}'."
     return f"Create a short strategy note for '{cleaned}' defining access path, constraints, and first milestone."
 
 
@@ -166,6 +169,7 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
         context = _optional_string_or_list(body, "context")
         
     # Constraints list (2.0 conversational with fallback)
+    has_human_constraints = "human_constraints" in body
     constraints = _optional_string_or_list(body, "human_constraints")
     if not constraints:
         constraints = _optional_string_or_list(body, "constraints")
@@ -193,7 +197,7 @@ def _draft_manifest_from_intent(body: dict[str, Any]) -> dict[str, Any]:
     route_text = " -> ".join(route)
 
     cleaned = _clean_intent_for_manifest(raw_intent)
-    next_action = _draft_smallest_next_action(raw_intent)
+    next_action = _draft_smallest_next_action(raw_intent, constraints, use_friction=has_human_constraints)
     
     current_reality = [
         f"Raw intent captured: {raw_intent}"
@@ -317,14 +321,53 @@ def draft_intent_endpoint(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
     warnings = [i for i in issues if i.startswith("[warning]")]
     
     # Run diagnosis to append its warning messages if any
-    diagnosis = _diagnose_intent(body.get("raw_intent", ""))
+    raw_intent = body.get("raw_intent", "")
+    diagnosis = _diagnose_intent(raw_intent)
     warnings.extend(diagnosis["warnings"])
+
+    # Determine plain-language diagnosis text based on route dropdown and diagnosis warnings
+    route = _optional_string_or_list(body, "route")
+    if not route:
+        route = diagnosis["suggested_route"]
+    route_text = " -> ".join(route)
+
+    diag_parts = []
+    if diagnosis["is_devops"] or any("DevOps" in r for r in route):
+        diag_parts.append("DevOps Task Detected: Strategic intent is clear, but continuous improvement tasks should be redirected to external DevOps loops (QRCI).")
+    else:
+        diag_parts.append(f"Strategic Route Grounded: {route_text}. Handed off to strategic deployment loop.")
+
+    if warnings:
+        clean_warns = [w.replace("[warning]", "").strip() for w in warnings]
+        diag_parts.append(f"Lint Warnings: {', '.join(clean_warns)}")
+    
+    diagnosis_text = " | ".join(diag_parts)
 
     normalized_manifest = compose_packet.normalize_manifest(manifest)
     packet_md = compose_packet.render_packet_md(manifest) + "\n"
     context_sha = compose_packet.compute_context_sha(normalized_manifest)
 
+    # Extract smallest next action
+    smallest_next_action = ""
+    for artifact in manifest["required_artifacts"]:
+        if artifact.startswith("Smallest next action:"):
+            smallest_next_action = artifact.replace("Smallest next action:", "").strip()
+            break
+    if not smallest_next_action:
+        # Fallback to notes
+        for note in manifest["notes"]:
+            if note.startswith("Smallest next action:"):
+                smallest_next_action = note.replace("Smallest next action:", "").strip()
+                break
+
     return {
+        # 2.0 Output hierarchy
+        "diagnosis": diagnosis_text,
+        "mission": manifest["mission"],
+        "smallest_next_action": smallest_next_action,
+        "packet_draft": json.loads(normalized_manifest),
+
+        # Backward compatibility fields
         "ok": not errors,
         "errors": errors,
         "warnings": warnings,

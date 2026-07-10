@@ -86,7 +86,7 @@ def test_intents_draft_2_0_conversational_keys(client):
     response = client.post(
         "/intents/draft",
         json={
-            "raw_intent": "Refactor interface to support step wizard.",
+            "raw_intent": "Design interface to support step wizard.",
             "human_constraints": "Only 30 minutes left.\nNo TailwindCSS allowed.",
             "additional_context": "Vite project configuration.\nSMI routing is active.",
             "route": "Strategic Plan",
@@ -105,10 +105,17 @@ def test_intents_draft_2_0_conversational_keys(client):
     assert "Route: Strategic Plan." in manifest["constraints"]
 
     # Context & Project context extraction (newline split)
-    assert "Raw intent captured: Refactor interface to support step wizard." in manifest["current_reality"]
+    assert "Raw intent captured: Design interface to support step wizard." in manifest["current_reality"]
     assert "Known project context: UI directory is static for now." in manifest["current_reality"]
     assert "Vite project configuration." in manifest["current_reality"]
     assert "SMI routing is active." in manifest["current_reality"]
+
+    # 2.0 Output hierarchy assertions
+    assert "Strategic Route Grounded: Strategic Plan" in payload["diagnosis"]
+    assert payload["mission"] == manifest["mission"]
+    assert "Draft a design note" in payload["smallest_next_action"]
+    assert "friction: 'Only 30 minutes left'" in payload["smallest_next_action"]
+    assert payload["packet_draft"] == manifest
 
 
 def test_intents_draft_rejects_invalid_output_mode(client):
