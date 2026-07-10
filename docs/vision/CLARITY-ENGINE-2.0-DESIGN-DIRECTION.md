@@ -42,6 +42,10 @@ We recognize that structured Context Packets are merely one possible artifact of
 ### Pillar 2: DevOps Separation & Route Diagnosis
 * **Lite Baseline:** Checks for DevOps keywords and logs warning alerts on the UI.
 * **2.0 Direction:** Strict intercept routing. DevOps tasks (bug fixes, refactoring, deployments) are automatically flagged, and the compiler prevents strategic mission generation for them, guiding the human to route them to issue trackers or continuous improvement channels.
+* **Route Governance:** When the automated routing layer is implemented, the selected **Routes** must dictate:
+  1. **Grounding behavior:** How raw intent is anchored against SMI variables, project state (PCP), or Mnemos workspace memory.
+  2. **Output type:** The structure of the generated artifact (e.g. strategic mission, observation note, architecture rule).
+  3. **Downstream handoff:** The target execution context or agent (e.g. JCT state queues, Jules worker, Mnemos workspace).
 
 ### Pillar 3: The "One-Action" Resolution Principle
 * **Lite Baseline:** Displays the entire structured manifest details (Acceptance, Failure Modes, etc.) on the UI card.
