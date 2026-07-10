@@ -4,6 +4,7 @@ Long-range intent and staged plans live here. Key references:
 
 - [CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-DESIGN-DIRECTION.md) — strategic architecture and design goals for Clarity Engine 2.0.
 - [CLARITY-ENGINE-2.0-MISSION.md](file:///home/architect/cognition/clarity-engine/docs/vision/CLARITY-ENGINE-2.0-MISSION.md) — strategic mission context packet for Clarity Engine 2.0.
+- [DEVOPS-CONTINUOUS-IMPROVEMENT-LOOP.md](file:///home/architect/cognition/clarity-engine/docs/vision/DEVOPS-CONTINUOUS-IMPROVEMENT-LOOP.md) — spec sheet for the external DevOps continuous improvement loop (strategic loop separation).
 - [mission.md](file:///home/architect/cognition/clarity-engine/docs/vision/mission.md) — extended mission statement and principles for Clarity Engine.
 - [current_reality.md](file:///home/architect/cognition/clarity-engine/docs/vision/current_reality.md) — facts-only inventory of the active system.
 - [architecture.md](file:///home/architect/cognition/clarity-engine/docs/vision/architecture.md) — planned historical architecture (intentionally dormant).
