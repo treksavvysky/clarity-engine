@@ -133,11 +133,18 @@ To prevent design regression, Clarity Engine 2.0 explicitly discards or radicall
 ---
 
 ## 7. Defining the "Smallest Next Move" (Anti-Task-Manager Bounds)
-To prevent design regression into task tracking, the **Smallest Next Move** is formally defined as the *lowest-friction, immediate physical or cognitive step required to break inertia*. It is explicitly bounded by three architectural constraints:
+To prevent design regression into task tracking, the **Smallest Next Move** is formally defined as:
 
+> **The minimum action needed to move a clarified mission into the correct downstream loop without pretending the mission is complete.**
+
+* **It is not the complete plan:** It represents a single trigger seed to start the improvement or execution loop, not a breakdown of the mission.
+* **It is not the only thing required:** It initiates progress without implying the mission is solved.
+* **It is not a task list:** It contains a single momentum action rather than scheduling checklists or tracking states.
+
+Under the hood, this is governed by three strict architectural constraints:
 1. **Ephemerality (No State Tracking):** Clarity Engine maintains **zero execution memory**. It does not track whether a move is "done," "in progress," or "blocked." It presents the trigger seed once and exits.
 2. **Singular Momentum (No Checklists):** The output produces exactly **one** immediate first action. Generating task lists, backlogs, or checklists is strictly prohibited.
-3. **Friction-Centric Extraction:** The move is extracted by diagnosing *"What makes this hard?"* (Question 2 of the capture workflow) and identifying the absolute smallest entry point to unblock that specific friction.
+3. **Friction-Centric Extraction:** The move is extracted by diagnosing *"What makes this hard?"* (Question 2 of the capture workflow) and identifying the absolute smallest entry point to unblock that specific friction and route the mission to the correct downstream loop (e.g. QRCI, PDCA, or Hoshin).
 
 By enforcing these boundaries, the engine remains focused on **cognitive resolution** (reducing cognitive load to zero) while leaving all project management state to external trackers.
 
