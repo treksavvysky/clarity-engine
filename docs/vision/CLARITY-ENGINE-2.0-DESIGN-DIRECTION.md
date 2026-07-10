@@ -52,11 +52,13 @@ We recognize that structured Context Packets are merely one possible artifact of
   2. **Output type:** The structure of the generated artifact (e.g. strategic mission, observation note, architecture rule).
   3. **Downstream handoff:** The target execution context or agent (e.g. JCT state queues, Jules worker, Mnemos workspace).
 
-### Pillar 3: The "One-Action" Resolution Principle
+### Pillar 3: The Plain-Language Output Hierarchy
 * **Lite Baseline:** Displays the entire structured manifest details (Acceptance, Failure Modes, etc.) on the UI card.
-* **2.0 Direction:** The primary output is reduced to the absolute minimum needed for momentum:
-  1. **One Clarified Strategic Objective.**
-  2. **One Smallest Next Action.**
+* **2.0 Direction:** The output is structured strictly into a clean, human-scannable layout:
+  1. **Plain-Language Diagnosis:** Clear routing guidance and context analysis (e.g. DevOps detection or warnings).
+  2. **Clarified Mission:** Sanitized strategic objective framing the intent without vague words.
+  3. **Smallest Next Action:** One immediate, low-friction next step to kickstart momentum.
+  4. **Optional Packet:** The detailed PCP-lite manifest JSON, hidden by default and revealed only on demand.
 * **Deferred Packet Formalization:** The formalization of the mission packet (JSON serialization, schema verification, and filesystem registry writes) is **deferred** until we are ready to build the downstream intelligence layer (the agents that actually consume these packets). Until then, the system operates as a pure cognitive unblocker, avoiding the administrative overhead of premature structured files.
 
 ---
@@ -80,11 +82,9 @@ To decouple the UI from the intelligence processing layer, Clarity Engine 2.0 de
 ### Output Payload
 ```json
 {
-  "diagnosis": "string (DevOps warning, task route recommendation, or lint checks)",
-  "clarified_intent": "string (sanitized, prefix-free statement)",
-  "mission": "string (Establish strategic framework and boundaries for...)",
-  "path": "engineering | lifeops | mixed",
-  "smallest_next_action": "string (the immediate concrete first step)",
+  "diagnosis": "string (Output 1: Plain-language diagnosis - DevOps check, warnings, lint status)",
+  "mission": "string (Output 2: Clarified mission - sanitized strategic objective)",
+  "smallest_next_action": "string (Output 3: Smallest next action - first concrete step)",
   "packet_draft": {
     "project": "string",
     "stage": "string",
