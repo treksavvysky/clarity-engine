@@ -67,13 +67,14 @@ def _optional_string_list(body: dict[str, Any], field: str) -> list[str]:
 
 
 def _diagnose_intent(raw_intent: str) -> dict[str, Any]:
+    import re
     DEVOPS_KEYWORDS = {
         "bug", "fix", "refactor", "deploy", "ci/cd", "pipeline", "ticket", "issue",
         "hotfix", "pull request", "pr", "github", "gitlab", "jenkins", "docker-compose",
         "kubernetes", "k8s", "cicd", "patch", "crash", "error logs", "test coverage"
     }
     lowered = raw_intent.lower()
-    matched_kws = [kw for kw in DEVOPS_KEYWORDS if kw in lowered]
+    matched_kws = [kw for kw in DEVOPS_KEYWORDS if re.search(r"\b" + re.escape(kw) + r"\b", lowered)]
     is_devops = len(matched_kws) > 0
 
     warnings = []
