@@ -208,3 +208,7 @@ __marimo__/
 
 # Clarity Engine runtime registry (content-addressed packet store)
 packets/registry/
+
+# Docker Compose local dev overrides
+docker-compose.override.yml
+

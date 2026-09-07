@@ -61,14 +61,15 @@ The API endpoints import and call functions from `tools/` directly to prevent se
 
 3. **MCP Server** (`app/mcp_server.py`): stdio server exposing compose, lint, register, get, list, diff, enqueue, and `check_action` tools.
 
-### Docker Dev Container
-
-`Dockerfile` + `docker-compose.yml` run the FastAPI service in a container for local dev:
-- `Dockerfile`: `python:3.12-slim`, installs `requirements.txt`, runs `uvicorn app.main:app --reload` on port 8000.
-- `docker-compose.yml`: bind-mounts the whole repo into `/app` so host edits trigger `--reload` live, and publishes the container's 8000 to host port **8010**. `packets/registry/` persists on the host because it's inside the mounted tree — same registry whether the service runs bare-metal or containerized.
-- `.dockerignore` excludes `.venv`, `.git`, `__pycache__`, and `packets/registry/` from the build context.
-- Not joined to the `codejourney-proxy` network — this service has no public vhost today. Add that network + a proxy entry if it ever needs one.
-- The MCP server (`app/mcp_server.py`) is stdio-based and is **not** part of the container; it runs on the host (see `.mcp.json`), same pattern as other repos in this ecosystem.
+### Docker Dev Container & Production Deployment
+ 
+ `Dockerfile` + `docker-compose.yml` run the FastAPI service:
+ - `plannedintent` is the production deployment host; `codejourney` is the local development and testing workspace.
+ - `Dockerfile`: `python:3.12-slim`, installs `requirements.txt`, runs `uvicorn app.main:app --host 0.0.0.0 --port 8000`.
+ - `docker-compose.yml`: defines the production base service with persistent `packets/registry/` volume and published host port **8010**.
+ - `docker-compose.override.yml`: gitignored local dev override used on `codejourney` to bind-mount the repo into `/app` with `--reload` and join the `codejourney-proxy` network for sibling containers (like Mnemos).
+ - `.dockerignore` excludes `.venv`, `.git`, `__pycache__`, and `packets/registry/` from the build context.
+ - The MCP server (`app/mcp_server.py`) is stdio-based and is **not** part of the container; it runs on the host (see `.mcp.json`), same pattern as other repos in this ecosystem.
 
 ### Core Contract
 
